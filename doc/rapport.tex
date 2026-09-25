@@ -58,9 +58,6 @@
     
     \vspace{1cm}
     {\large \textit{Dossier d'architecture logicielle, choix de conception et implémentation technique}\par}
-    \vspace{0.3cm}
-    {\normalsize \textbf{Spring Boot 3 (Java 21) -- Angular 18 (Signals \& Tailwind) -- PostgreSQL 16 -- Docker Compose}\par}
-    
     \vspace{3cm}
     
     % Rectangle d'identification demandé par l'utilisateur
@@ -99,15 +96,13 @@
 % ==============================================================================
 \section{Introduction Générale et Périmètre du Projet}
 
-Le projet \textbf{Mini-Blog} a pour objectif d'offrir une plateforme moderne, performante et sécurisée de publication et d'interaction communautaire. L'application est architecturée selon un découpage en couches découplées :
+Le projet \textbf{Mini-Blog} a pour objectif d'offrir une plateforme moderne, performante et sécurisée de publication et d'interaction communautaire. L'application est architecturée de la façon suivante :
 \begin{itemize}
     \item \textbf{Backend RESTful} : Développé en Java 21 LTS avec \textbf{Spring Boot 3}, assurant la gestion des utilisateurs, des articles, des commentaires, du hachage BCrypt, des jetons JWT stateless et du contrôle d'accès au niveau ressource.
     \item \textbf{Base de Données Relationnelle} : Propulsée par \textbf{PostgreSQL 16}, avec contrôle strict de schéma et migrations SQL versionnées via \textbf{Flyway}.
     \item \textbf{Frontend Single Page Application (SPA)} : Développé avec \textbf{Angular 18} en architecture \textit{Standalone} intégrale, exploitant les \textbf{Signals} réactifs et le design system utilitaire \textbf{Tailwind CSS}.
     \item \textbf{Infrastructure \& Conteneurisation} : Déploiement automatisé multi-conteneurs via \textbf{Docker Compose} avec serveur web \textbf{Nginx} servant l'application sur le port conventionnel \texttt{4200} et assurant le reverse-proxying interne vers l'API sans friction CORS.
 \end{itemize}
-
-Ce document détaille dans une première partie l'ensemble des choix et réalisations du \textbf{Backend}, puis dans une seconde partie ceux du \textbf{Frontend}, avant de conclure sur le déploiement et la gestion des secrets.
 
 \newpage
 
