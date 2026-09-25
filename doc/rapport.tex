@@ -360,9 +360,9 @@ Sécurité globale & Intégration & Scénario complet en 15 étapes (création c
 
 L'application couvre l'ensemble des parcours fonctionnels d'un blog collaboratif :
 \begin{itemize}
-    \item[$\square$] \textbf{Visiteur anonyme} : Consulte le flux des articles publiés sur \texttt{/articles}, effectue des recherches textuelles, lit les détails d'un article et ses commentaires. Il peut créer un compte sur \texttt{/register} ou s'identifier sur \texttt{/login}.
-    \item[$\square$] \textbf{Auteur authentifié} (\texttt{ROLE\_USER}) : Rédige des articles sur \texttt{/articles/nouveau} (créés en \texttt{DRAFT}). Il dispose de son espace \texttt{/mes-brouillons} pour retrouver ses articles en cours, les modifier et les supprimer. Il peut commenter les articles publiés.
-    \item[$\square$] \textbf{Administrateur} (\texttt{ROLE\_ADMIN}) : Accède au dashboard de supervision \texttt{/admin}. Il visualise l'ensemble des articles du site, filtre par statut, ouvre la prévisualisation modale, et utilise les boutons d'action pour publier un brouillon ou dépublier un article. Il bénéficie également d'un pouvoir de modération absolue sur tous les commentaires.
+    \item \textbf{Visiteur anonyme} : Consulte le flux des articles publiés sur \texttt{/articles}, effectue des recherches textuelles, lit les détails d'un article et ses commentaires. Il peut créer un compte sur \texttt{/register} ou s'identifier sur \texttt{/login}.
+    \item \textbf{Auteur authentifié} (\texttt{ROLE\_USER}) : Rédige des articles sur \texttt{/articles/nouveau} (créés en \texttt{DRAFT}). Il dispose de son espace \texttt{/mes-brouillons} pour retrouver ses articles en cours, les modifier et les supprimer. Il peut commenter les articles publiés.
+    \item \textbf{Administrateur} (\texttt{ROLE\_ADMIN}) : Accède au dashboard de supervision \texttt{/admin}. Il visualise l'ensemble des articles du site, filtre par statut, ouvre la prévisualisation modale, et utilise les boutons d'action pour publier un brouillon ou dépublier un article. Il bénéficie également d'un pouvoir de modération absolue sur tous les commentaires.
 \end{itemize}
 
 \newpage
@@ -376,9 +376,9 @@ L'application couvre l'ensemble des parcours fonctionnels d'un blog collaboratif
 
 L'ensemble de la plateforme est orchestré via un fichier \texttt{docker-compose.yml} unique pilotant les 3 conteneurs sur un réseau interne :
 \begin{itemize}
-    \item[$\square$] \textbf{\texttt{miniblog-postgres}} : Base PostgreSQL 16 Alpine avec healthcheck automatisé.
-    \item[$\square$] \textbf{\texttt{miniblog-backend}} : API Spring Boot 3 compilée en conteneur multi-stage (JRE 21 slim).
-    \item[$\square$] \textbf{\texttt{miniblog-frontend}} : Serveur Nginx Alpine servant l'application Angular compilée et assurant le reverse-proxying vers l'API.
+    \item \textbf{\texttt{miniblog-postgres}} : Base PostgreSQL 16 Alpine avec healthcheck automatisé.
+    \item \textbf{\texttt{miniblog-backend}} : API Spring Boot 3 compilée en conteneur multi-stage (JRE 21 slim).
+    \item \textbf{\texttt{miniblog-frontend}} : Serveur Nginx Alpine servant l'application Angular compilée et assurant le reverse-proxying vers l'API.
 \end{itemize}
 
 \paragraph{Gestion des secrets d'environnement :} Les informations sensibles (mots de passe de la base de données, clé secrète HMAC-SHA du JWT, identifiants du compte administrateur) sont gérées selon les meilleures pratiques DevSecOps :
