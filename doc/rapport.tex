@@ -166,7 +166,8 @@ Lors de la phase de cadrage et d'interview technique, plusieurs axes structurant
     \item Docker Compose restreint à PostgreSQL avec exécution locale de Spring Boot.
     \item Docker Compose sans interface Swagger UI.
 \end{enumerate}
-\paragraph{Justification du choix :} Le fichier \texttt{docker-compose.yml} permet d'initialiser tout le système en une seule commande (\texttt{docker compose up}). L'intégration de Swagger UI (\texttt{/swagger-ui/index.html}) avec configuration du schéma de sécurité \texttt{BearerAuth} permet d'interagir immédiatement avec l'API, de s'authentifier et d'éprouver la matrice des droits avant même le développement de l'interface Angular.
+\paragraph{Justification du choix :} Le fichier \texttt{docker-compose.yml} permet d'initialiser tout le système en une seule commande (\texttt{docker compose up}). L'intégration de Swagger UI (\texttt{/swagger-ui/index.html}) avec configuration du schéma de sécurité \texttt{BearerAuth} permet d'interagir immédiatement avec l'API, de s'authentifier et d'éprouver la matrice des droits.
+De surcroît, l'ensemble des données sensibles (mot de passe de base de données PostgreSQL, signature secrète HMAC-SHA du jeton JWT, identifiants du compte administrateur initial) est externalisé au travers d'un gabarit \texttt{.env.example}. Le fichier \texttt{.env} local injecte ces variables dans \texttt{docker-compose.yml} et \texttt{application.yml}, tout en étant strictement exclu de Git (\texttt{.gitignore}) pour prévenir toute fuite de secret.
 
 ---
 
@@ -315,9 +316,80 @@ Le tableau \ref{tab:test-suite} recense l'ensemble des scénarios de test exécu
 
 ---
 
-\section{Conclusion et Prochaines Étapes}
+\section{Conception et Choix Techniques du Frontend Angular}
 
-Ce backend fournit un socle fiable, sécurisé et totalement testé, proprement isolé dans le répertoire \texttt{backend/}. L'exhaustivité de la matrice des droits et la clarté des contrats d'API exposés via Swagger UI permettront d'aborder la phase suivante (le développement du client Angular dans un dossier dédié \texttt{frontend/}) avec un niveau élevé de prédictibilité et de confort d'intégration.
-Ce rapport continuera d'évoluer au fil des développements.
+La réalisation du client web s'appuie sur le framework \textbf{Angular} dans son paradigme moderne. Cette section formalise les décisions prises lors de la phase de cadrage du frontend.
+
+\subsection{Axe 10 : Solution de Style et Design System}
+\paragraph{Contexte :} L'interface doit offrir une navigation claire et agréable pour un blog (lecture, rédaction, modération), être entièrement réactive (mobile/desktop) et permettre un prototypage rapide de composants sur-mesure (badges de statut, bannières flottantes, cartes de prévisualisation).
+\paragraph{Options étudiées :}
+\begin{enumerate}
+    \item \textbf{Tailwind CSS (Approche utilitaire)} (Retenu).
+    \item Bootstrap 5 (Composants prédéfinis).
+    \item Angular Material (Design System Google).
+    \item CSS moderne natif sans framework externe.
+\end{enumerate}
+\paragraph{Justification du choix :} Tailwind CSS permet de concevoir des composants élégants sans surcharge de styles monolithiques ou conflits CSS. Il facilite la mise en valeur des statuts (\texttt{DRAFT} en ambre, \texttt{PUBLISHED} en émeraude), s'intègre naturellement avec le build Angular et optimise la taille du bundle final grâce à l'élimination automatique des classes inutilisées.
+
+\subsection{Axe 11 : Gestion Moderne de l'Indisponibilité du Backend}
+\paragraph{Contexte :} Si le serveur Spring Boot est arrêté ou rencontre une défaillance réseau, l'application frontend ne doit pas crasher silencieusement ni bloquer brutalement l'utilisateur avec des alertes intrusives.
+\paragraph{Options étudiées :}
+\begin{enumerate}
+    \item \textbf{Approche Hybride Moderne : Toast flottant non-bloquant avec bouton << Réessayer >> lors des actions, et écran d'état de repli avec auto-reconnexion si le chargement initial échoue} (Retenu).
+    \item Bannière globale persistante en haut de page.
+    \item Redirection brutale vers une page d'erreur dédiée (\texttt{/503}).
+\end{enumerate}
+\paragraph{Justification du choix :} L'approche hybride offre la meilleure expérience utilisateur. Grâce à un intercepteur HTTP global (\texttt{errorInterceptor}) et un service d'état réactif (\texttt{NetworkStatusService}), une notification flottante moderne informe l'utilisateur en temps réel lors d'une coupure réseau avec un compte à rebours de reconnexion et un bouton d'action manuelle, sans détruire le contexte de la page en cours.
+
+\subsection{Axe 12 : Orchestration Docker \& Reverse-Proxy Nginx}
+\paragraph{Contexte :} Faciliter le déploiement du frontend et éviter les écueils récurrents liés aux règles CORS entre le navigateur et l'API Spring Boot.
+\paragraph{Options étudiées :}
+\begin{enumerate}
+    \item \textbf{Conteneur Nginx multi-stage dans \texttt{docker-compose.yml} faisant reverse-proxy sur \texttt{/api} vers \texttt{backend:8080}, et \texttt{proxy.conf.json} pour le dev local} (Retenu).
+    \item Configuration CORS Spring Boot et exposition d'Angular sur un port séparé (ex: 4200).
+    \item Exécution locale d'Angular sans conteneurisation Docker.
+\end{enumerate}
+\paragraph{Justification du choix :} L'utilisation de Nginx en conteneur unifie l'origine du frontend et de l'API. Exposé sur le port standard d'Angular (\texttt{4200:80}) via la variable configurable \texttt{FRONTEND\_PORT}, ce choix évite d'exiger des privilèges système (port 80) tout en respectant l'écosystème Angular. Les requêtes vers \texttt{/api/*} sont automatiquement transmises au service Spring Boot sur le réseau Docker interne. Cela élimine tout risque de blocage CORS, gère le routage SPA (\texttt{try\_files \$uri /index.html}) et permet de lancer l'intégralité de la plateforme (base, backend, frontend) en une commande unique : \texttt{docker compose up}.
+
+\subsection{Axe 13 : Formatage et Rendu des Articles (Markdown)}
+\paragraph{Contexte :} Les auteurs d'articles doivent pouvoir mettre en valeur leur texte (titres, gras, italique, citations, blocs de code, listes à puces) simplement et sans risque de sécurité.
+\paragraph{Options étudiées :}
+\begin{enumerate}
+    \item \textbf{Support Markdown léger avec assainissement du rendu} (Retenu).
+    \item Texte brut sans mise en forme (\texttt{whitespace-pre-line}).
+    \item Éditeur WYSIWYG HTML riche (ex: TinyMCE, Quill).
+\end{enumerate}
+\paragraph{Justification du choix :} Le Markdown est le format idéal pour les développeurs et rédacteurs de blogs techniques. Il est léger à stocker (texte brut en base), insensible aux failles XSS grâce à un parseur sécurisé, et offre un rendu typographique soigné sans la complexité d'un éditeur HTML externe.
+
+---
+
+\section{Architecture Logicielle Frontend Angular}
+
+Le projet frontend est structuré selon les standards modernes d'Angular :
+\begin{itemize}
+    \item \textbf{Composants Standalone \& Signals} : Suppression complète des \texttt{NgModule}. L'état de l'application (utilisateur connecté, statut admin, notification de panne) est géré de façon réactive via les \textbf{Signals} d'Angular (\texttt{signal}, \texttt{computed}), garantissant des performances maximales et une détection de changement granulaire.
+    \item \textbf{Sécurisation des Routes (Guards)} :
+    \begin{itemize}
+        \item \texttt{authGuard} : Restreint l'accès aux utilisateurs authentifiés pour la création d'article (\texttt{/articles/nouveau}), l'édition de brouillons (\texttt{/articles/:id/editer}) et l'espace << Mes brouillons >> (\texttt{/mes-brouillons}).
+        \item \texttt{adminGuard} : Bloque l'accès à la console d'administration (\texttt{/admin}) pour tout utilisateur ne disposant pas du rôle \texttt{ROLE\_ADMIN}.
+    \end{itemize}
+    \item \textbf{Intercepteurs HTTP} :
+    \begin{itemize}
+        \item \texttt{jwtInterceptor} : Injecte automatiquement l'en-tête \texttt{Authorization: Bearer <token>} pour toutes les requêtes destinées à l'API.
+        \item \texttt{errorInterceptor} : Capture les codes d'erreur réseau (status 0, 502, 503) et relaie l'événement au service de notification.
+    \end{itemize}
+\end{itemize}
+
+---
+
+\section{Conclusion}
+
+L'application \textbf{Mini-Blog} dispose désormais d'un écosystème complet, cohérent et robuste :
+\begin{itemize}
+    \item Un backend Spring Boot sécurisé avec persistance PostgreSQL et migrations Flyway.
+    \item Une suite de tests automatisés couvrant 100\% de la matrice des droits.
+    \item Une interface client Angular moderne, réactive et ergonomique propulsée par Tailwind CSS.
+    \item Une conteneurisation globale orchestrée par Docker Compose avec reverse-proxy Nginx.
+\end{itemize}
 
 \end{document}

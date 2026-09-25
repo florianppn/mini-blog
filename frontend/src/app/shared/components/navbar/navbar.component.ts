@@ -1,0 +1,118 @@
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
+
+@Component({
+  selector: 'app-navbar',
+  standalone: true,
+  imports: [CommonModule, RouterLink, RouterLinkActive],
+  template: `
+    <header class="bg-white/90 backdrop-blur-md sticky top-0 z-40 border-b border-slate-200/80 shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          
+          <!-- Logo & Brand -->
+          <div class="flex items-center gap-8">
+            <a routerLink="/" class="flex items-center gap-2.5 group">
+              <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                </svg>
+              </div>
+              <span class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                Mini<span class="text-indigo-600">Blog</span>
+              </span>
+            </a>
+
+            <!-- Navigation Links -->
+            <nav class="hidden md:flex items-center gap-1">
+              <a
+                routerLink="/articles"
+                routerLinkActive="bg-indigo-50 text-indigo-700 font-semibold"
+                [routerLinkActiveOptions]="{ exact: true }"
+                class="px-3.5 py-2 rounded-lg text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+                Articles
+              </a>
+
+              @if (authService.isAuthenticated()) {
+                <a
+                  routerLink="/mes-brouillons"
+                  routerLinkActive="bg-indigo-50 text-indigo-700 font-semibold"
+                  class="px-3.5 py-2 rounded-lg text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                  Mes brouillons
+                </a>
+              }
+
+              @if (authService.isAdmin()) {
+                <a
+                  routerLink="/admin"
+                  routerLinkActive="bg-purple-50 text-purple-700 font-semibold"
+                  class="px-3.5 py-2 rounded-lg text-sm text-purple-700 hover:bg-purple-100/70 transition-colors flex items-center gap-1.5 font-medium">
+                  <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                  Administration
+                </a>
+              }
+            </nav>
+          </div>
+
+          <!-- User actions & profile -->
+          <div class="flex items-center gap-3">
+            @if (authService.isAuthenticated()) {
+              <a
+                routerLink="/articles/nouveau"
+                class="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-sm font-semibold rounded-xl transition shadow-sm hover:shadow-indigo-500/25">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Écrire
+              </a>
+
+              <div class="flex items-center gap-3 pl-3 border-l border-slate-200">
+                <div class="text-right hidden sm:block">
+                  <div class="text-xs font-semibold text-slate-900 truncate max-w-[150px]">
+                    {{ authService.currentUser()?.email }}
+                  </div>
+                  <span
+                    class="inline-block text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.2 rounded"
+                    [ngClass]="authService.isAdmin() ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-600'">
+                    {{ authService.isAdmin() ? 'Admin' : 'Auteur' }}
+                  </span>
+                </div>
+
+                <button
+                  (click)="authService.logout()"
+                  class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
+                  title="Se déconnecter">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </button>
+              </div>
+            } @else {
+              <div class="flex items-center gap-2">
+                <a
+                  routerLink="/login"
+                  class="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors">
+                  Connexion
+                </a>
+                <a
+                  routerLink="/register"
+                  class="px-4 py-2 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-xl transition shadow-sm hover:shadow-indigo-500/25">
+                  S'inscrire
+                </a>
+              </div>
+            }
+          </div>
+
+        </div>
+      </div>
+    </header>
+  `
+})
+export class NavbarComponent {
+  authService = inject(AuthService);
+}

@@ -1,0 +1,171 @@
+import { Component, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
+
+@Component({
+  selector: 'app-register',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  template: `
+    <div class="min-h-[calc(100vh-16rem)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-md w-full">
+        
+        <!-- Header -->
+        <div class="text-center mb-8">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center mx-auto shadow-lg shadow-indigo-500/25 mb-4">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+            </svg>
+          </div>
+          <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Créer un compte auteur</h2>
+          <p class="mt-2 text-sm text-slate-600">
+            Déjà inscrit ?
+            <a routerLink="/login" class="font-semibold text-indigo-600 hover:text-indigo-500 transition">
+              Connectez-vous à votre espace
+            </a>
+          </p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="bg-white p-8 rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-900/5">
+          
+          <!-- Error alert -->
+          @if (errorMessage()) {
+            <div class="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center gap-3">
+              <svg class="w-5 h-5 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{{ errorMessage() }}</span>
+            </div>
+          }
+
+          <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-5">
+            <div>
+              <label for="email" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                Adresse Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                formControlName="email"
+                placeholder="votre@email.com"
+                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition" />
+              @if (registerForm.get('email')?.touched && registerForm.get('email')?.invalid) {
+                <p class="text-rose-600 text-xs mt-1">Veuillez renseigner un email valide.</p>
+              }
+            </div>
+
+            <div>
+              <label for="password" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                Mot de passe
+              </label>
+              <input
+                id="password"
+                type="password"
+                formControlName="password"
+                placeholder="Minimum 6 caractères"
+                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition" />
+              @if (registerForm.get('password')?.touched && registerForm.get('password')?.invalid) {
+                <p class="text-rose-600 text-xs mt-1">Le mot de passe doit comporter au moins 6 caractères.</p>
+              }
+            </div>
+
+            <div>
+              <label for="confirmPassword" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                Confirmer le mot de passe
+              </label>
+              <input
+                id="confirmPassword"
+                type="password"
+                formControlName="confirmPassword"
+                placeholder="Confirmez votre mot de passe"
+                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition" />
+              @if (passwordMismatch()) {
+                <p class="text-rose-600 text-xs mt-1">Les mots de passe ne correspondent pas.</p>
+              }
+            </div>
+
+            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 text-xs text-slate-600">
+              ℹ️ Les comptes créés ont le rôle <strong class="text-slate-800">ROLE_USER</strong>. Vous pourrez rédiger des articles en brouillon et commenter les articles publiés.
+            </div>
+
+            <button
+              type="submit"
+              [disabled]="registerForm.invalid || passwordMismatch() || isLoading()"
+              class="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white text-sm font-bold rounded-xl transition shadow-md hover:shadow-indigo-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+              @if (isLoading()) {
+                <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Inscription en cours...</span>
+              } @else {
+                <span>Créer mon compte</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              }
+            </button>
+          </form>
+
+        </div>
+
+      </div>
+    </div>
+  `
+})
+export class RegisterComponent {
+  private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
+  isLoading = signal<boolean>(false);
+  errorMessage = signal<string>('');
+
+  registerForm: FormGroup = this.fb.group({
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(6)]],
+    confirmPassword: ['', [Validators.required]]
+  });
+
+  passwordMismatch(): boolean {
+    const p1 = this.registerForm.get('password')?.value;
+    const p2 = this.registerForm.get('confirmPassword')?.value;
+    return !!p2 && p1 !== p2;
+  }
+
+  onSubmit(): void {
+    if (this.registerForm.invalid || this.passwordMismatch()) {
+      this.registerForm.markAllAsTouched();
+      return;
+    }
+
+    this.isLoading.set(true);
+    this.errorMessage.set('');
+
+    const { email, password } = this.registerForm.value;
+
+    this.authService.register({ email, password }).subscribe({
+      next: () => {
+        // Automatically log in after registration
+        this.authService.login({ email, password }).subscribe({
+          next: () => {
+            this.isLoading.set(false);
+            this.router.navigate(['/articles']);
+          },
+          error: () => {
+            this.isLoading.set(false);
+            this.router.navigate(['/login']);
+          }
+        });
+      },
+      error: err => {
+        this.isLoading.set(false);
+        if (err.status === 409 || (err.error?.message && err.error.message.includes('déjà utilisé'))) {
+          this.errorMessage.set('Cette adresse email est déjà associée à un compte.');
+        } else {
+          this.errorMessage.set(err.error?.message || 'Erreur lors de la création du compte.');
+        }
+      }
+    });
+  }
+}

@@ -4,15 +4,15 @@ services:
     container_name: miniblog-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: miniblog
-      POSTGRES_USER: miniblog
-      POSTGRES_PASSWORD: miniblog_password
+      POSTGRES_DB: ${POSTGRES_DB:-miniblog}
+      POSTGRES_USER: ${POSTGRES_USER:-miniblog}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-miniblog_password}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U miniblog -d miniblog"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-miniblog} -d ${POSTGRES_DB:-miniblog}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -27,15 +27,26 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "8080:8080"
+      - "${BACKEND_PORT:-8080}:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/miniblog
-      SPRING_DATASOURCE_USERNAME: miniblog
-      SPRING_DATASOURCE_PASSWORD: miniblog_password
-      APP_JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
-      APP_JWT_EXPIRATION_MS: 86400000
-      APP_ADMIN_EMAIL: admin@miniblog.com
-      APP_ADMIN_PASSWORD: adminPassword123!
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-miniblog}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-miniblog}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-miniblog_password}
+      APP_JWT_SECRET: ${APP_JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+      APP_JWT_EXPIRATION_MS: ${APP_JWT_EXPIRATION_MS:-86400000}
+      APP_ADMIN_EMAIL: ${APP_ADMIN_EMAIL:-admin@miniblog.com}
+      APP_ADMIN_PASSWORD: ${APP_ADMIN_PASSWORD:-adminPassword123!}
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: miniblog-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-4200}:80"
 
 volumes:
   postgres_data:
