@@ -111,7 +111,7 @@ Le projet \textbf{Mini-Blog} a pour objectif d'offrir une plateforme moderne, pe
 
 \subsection{Choix de conception et justifications techniques}
 
-\subsubsection{Axe 1 : Mécanisme d'Authentification et Gestion de Session}
+\subsubsection{Axe 1 : Mécanisme d'authentification et gestion de session}
 \paragraph{Question :} Comment reconnaître un utilisateur connecté et sécuriser ses requêtes ?
 \paragraph{Options :}
 \begin{enumerate}
@@ -121,7 +121,7 @@ Le projet \textbf{Mini-Blog} a pour objectif d'offrir une plateforme moderne, pe
 \end{enumerate}
 \paragraph{Pourquoi :} Avec une session classique, le serveur doit mémoriser chaque internaute connecté, ce qui consomme de la mémoire et complique les montées en charge. Avec un jeton (JWT), c'est l'inverse : dès que l'utilisateur s'identifie, le serveur lui remet un « badge numérique chiffré » contenant son identifiant et son rôle. À chaque clic ou action, le navigateur présente ce badge. Le serveur n'a qu'à vérifier sa signature sans rien stocker. C'est plus léger, plus rapide, et c'est la façon la plus naturelle de faire communiquer une application Angular avec une API.
 
-\subsubsection{Axe 2 : Inscription et Création du Premier Administrateur}
+\subsubsection{Axe 2 : Inscription et création du premier administrateur}
 \paragraph{Question :} Comment permettre aux visiteurs de s'inscrire tout en garantissant qu'un administrateur existe dès le départ ?
 \paragraph{Options :}
 \begin{enumerate}
@@ -131,7 +131,7 @@ Le projet \textbf{Mini-Blog} a pour objectif d'offrir une plateforme moderne, pe
 \end{enumerate}
 \paragraph{Pourquoi :} N'importe quel visiteur peut s'inscrire librement pour commencer à rédiger des articles. En revanche, le rôle d'administrateur donne tous les pouvoirs sur le site et ne doit jamais être accessible lors d'une inscription publique. Pour que la plateforme soit utilisable immédiatement dès le premier lancement sans exiger de manipulation manuelle dans la base de données, le backend crée automatiquement un compte administrateur par défaut s'il n'existe pas encore.
 
-\subsubsection{Axe 3 : Règles de Publication et Modération des Commentaires}
+\subsubsection{Axe 3 : Règles de publication et modération des commentaires}
 \paragraph{Question :} Qui a le droit de commenter et comment assurer la modération des discussions ?
 \paragraph{Options :}
 \begin{enumerate}
@@ -141,7 +141,7 @@ Le projet \textbf{Mini-Blog} a pour objectif d'offrir une plateforme moderne, pe
 \end{enumerate}
 \paragraph{Pourquoi :} Ouvrir les commentaires aux anonymes attirerait inévitablement du spam et des messages indésirables : imposer d'être connecté responsabilise les auteurs. De plus, il est illogique de pouvoir commenter un article encore en brouillon : les discussions ne s'ouvrent que sur les articles publics. Enfin, pour le confort d'usage, chaque utilisateur peut corriger ou retirer ses propres messages, tandis que l'administrateur conserve le droit de supprimer n'importe quel commentaire pour faire respecter la charte du blog.
 
-\subsubsection{Axe 4 : Cycle de Vie et Modification des Articles}
+\subsubsection{Axe 4 : Cycle de vie et modification des articles}
 \paragraph{Question :} Un auteur peut-il encore modifier ou supprimer son article une fois que l'administrateur l'a validé et publié ?
 \paragraph{Options :}
 \begin{enumerate}
@@ -151,7 +151,7 @@ Le projet \textbf{Mini-Blog} a pour objectif d'offrir une plateforme moderne, pe
 \end{enumerate}
 \paragraph{Pourquoi :} C'est une règle de bon sens éditorial. Si un auteur pouvait modifier son texte librement après validation, il pourrait faire valider un article irréprochable par l'administrateur, puis le remplacer une heure plus tard par du contenu offensant ou publicitaire. Dès lors qu'un article est public, c'est l'administrateur qui engage la responsabilité du site : l'article est donc verrouillé pour l'auteur. Si un changement est requis, l'administrateur peut s'en charger ou renvoyer l'article en brouillon pour réécriture.
 
-\subsubsection{Axe 5 : Déclenchement de la Publication}
+\subsubsection{Axe 5 : Déclenchement de la publication}
 \paragraph{Question :} Comment concevoir l'action de publication dans l'application pour éviter les erreurs et les fraudes ?
 \paragraph{Options :}
 \begin{enumerate}
@@ -160,7 +160,7 @@ Le projet \textbf{Mini-Blog} a pour objectif d'offrir une plateforme moderne, pe
 \end{enumerate}
 \paragraph{Pourquoi :} Séparer nettement la modification du texte de l'action de validation évite toute confusion. Cela empêche surtout un utilisateur malveillant de glisser en douce une instruction « publier » lors de l'enregistrement ordinaire de son brouillon. Seuls les boutons d'action réservés aux administrateurs peuvent faire basculer un article d'un état à l'autre.
 
-\subsubsection{Axe 6 : Confidentialité et Visibilité des Brouillons}
+\subsubsection{Axe 6 : Confidentialité et visibilité des brouillons}
 \paragraph{Question :} Qui doit pouvoir voir les articles en cours de rédaction ?
 \paragraph{Options :}
 \begin{enumerate}
@@ -169,7 +169,7 @@ Le projet \textbf{Mini-Blog} a pour objectif d'offrir une plateforme moderne, pe
 \end{enumerate}
 \paragraph{Pourquoi :} Un brouillon est un travail inachevé, personnel et confidentiel. Il est donc logique qu'aucun autre utilisateur ne puisse l'apercevoir tant qu'il n'est pas prêt. L'administrateur, lui, doit pouvoir accéder à l'ensemble des brouillons pour relire les propositions et décider de leur mise en ligne. Le système applique cette règle de confidentialité automatiquement en fonction de la personne connectée.
 
-\subsubsection{Axe 7 : Suppression des Données et Liens en Cascade}
+\subsubsection{Axe 7 : Suppression des données et liens en cascade}
 \paragraph{Question :} Que doit-il se passer pour les commentaires lorsqu'un article est supprimé ?
 \paragraph{Options :}
 \begin{enumerate}
@@ -179,7 +179,7 @@ Le projet \textbf{Mini-Blog} a pour objectif d'offrir une plateforme moderne, pe
 \end{enumerate}
 \paragraph{Pourquoi :} Conserver des commentaires attachés à un article qui n'existe plus encombrerait inutilement la base de données et créerait des incohérences. Supprimer l'article et ses commentaires en un seul geste garantit que la base de données reste parfaitement propre, tout en respectant le droit à l'effacement.
 
-\subsubsection{Axe 8 : Évolution et Migrations de la Base de Données}
+\subsubsection{Axe 8 : Évolution et migrations de la base de données}
 \paragraph{Question :} Comment s'assurer que la base de données s'installe à l'identique sur tous les ordinateurs sans risque d'erreur humaine ?
 \paragraph{Options :}
 \begin{enumerate}
@@ -189,7 +189,7 @@ Le projet \textbf{Mini-Blog} a pour objectif d'offrir une plateforme moderne, pe
 \end{enumerate}
 \paragraph{Pourquoi :} Laisser un outil automatique modifier la base de données à l'aveugle est une cause majeure de pannes et de pertes de données. Avec Flyway, chaque changement de structure est écrit dans un script SQL clair, daté et vérifié. Au démarrage, l'application lit ces scripts dans l'ordre et met à jour la base sans intervention humaine, assurant une installation infaillible sur n'importe quel ordinateur.
 
-\subsubsection{Axe 9 : Conteneurisation et Gestion des Secrets}
+\subsubsection{Axe 9 : Conteneurisation et gestion des secrets}
 \paragraph{Question :} Comment permettre de démarrer tout le projet en un clic sans risque de fuite de mots de passe ?
 \paragraph{Options :}
 \begin{enumerate}
@@ -308,7 +308,7 @@ Afin de garantir la robustesse des règles de gestion et la stricte étanchéit�
 
 Cette sous-section détaille les 4 décisions structurantes du client web Angular, également vulgarisées pour en comprendre les raisons pratiques.
 
-\subsubsection{Axe 10 : Solution de Style et Design Visuel}
+\subsubsection{Axe 10 : Solution de style et design visuel}
 \paragraph{Question :} Comment concevoir une interface agréable, moderne et parfaitement lisible sur smartphone comme sur ordinateur ?
 \paragraph{Options :}
 \begin{enumerate}
@@ -319,7 +319,7 @@ Cette sous-section détaille les 4 décisions structurantes du client web Angula
 \end{enumerate}
 \paragraph{Pourquoi :} Plutôt que d'écrire des centaines de lignes de CSS complexes ou de subir des composants rigides difficiles à personnaliser, Tailwind CSS permet de styliser chaque élément directement avec des mots-clés simples et visuels. Cela nous a permis de concevoir des composants sur-mesure très soignés (badges ambre pour les brouillons, badges vert émeraude pour les articles publiés, formulaires épurés), tout en garantissant une application légère et très rapide à charger.
 
-\subsubsection{Axe 11 : Gestion des Pannes Réseau et Arrêt du Serveur}
+\subsubsection{Axe 11 : Gestion des pannes réseau et arrêt du serveur}
 \paragraph{Question :} Que doit voir l'utilisateur si le serveur backend s'arrête ou ne répond plus ?
 \paragraph{Options :}
 \begin{enumerate}
@@ -329,7 +329,7 @@ Cette sous-section détaille les 4 décisions structurantes du client web Angula
 \end{enumerate}
 \paragraph{Pourquoi :} Si le serveur rencontre une coupure temporaire, rediriger brutalement l'utilisateur vers une page d'erreur ferait perdre tout le texte qu'il était en train d'écrire. À l'inverse, ne rien afficher le laisserait dans l'incompréhension face à des boutons qui ne répondent plus. Nous avons conçu une notification flottante moderne : elle prévient calmement l'utilisateur sans masquer son travail, décompte les secondes avant une nouvelle tentative automatique, et propose un bouton pour réessayer immédiatement dès que la connexion est rétablie.
 
-\subsubsection{Axe 12 : Routage et Communication avec l'API}
+\subsubsection{Axe 12 : Routage et communication avec l'API}
 \paragraph{Question :} Comment faire dialoguer le site web Angular et l'API Spring Boot sans rencontrer de blocages du navigateur ?
 \paragraph{Options :}
 \begin{enumerate}
@@ -338,7 +338,7 @@ Cette sous-section détaille les 4 décisions structurantes du client web Angula
 \end{enumerate}
 \paragraph{Pourquoi :} Par sécurité, les navigateurs internet bloquent fréquemment les échanges lorsqu'un site web tente d'appeler un serveur situé sur une adresse ou un port différent (les fameuses erreurs CORS). Nginx résout ce problème à la racine en agissant comme un « guichet unique » sur le port habituel d'Angular (\texttt{4200}) : pour l'internaute, tout provient du même endroit. Nginx affiche le site web et transmet de manière transparente les demandes de données au serveur Spring Boot en arrière-plan.
 
-\subsubsection{Axe 13 : Rédaction et Mise en Page des Articles}
+\subsubsection{Axe 13 : Rédaction et mise en page des articles}
 \paragraph{Question :} Comment permettre aux auteurs d'enrichir le texte de leurs articles sans risquer d'introduire des failles de sécurité ?
 \paragraph{Options :}
 \begin{enumerate}
