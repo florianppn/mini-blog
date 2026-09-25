@@ -250,19 +250,28 @@ La sécurité combine deux niveaux complémentaires : le contrôle d'accès bas�
 \begin{table}[htbp]
 \centering
 \small
-\renewcommand{\arraystretch}{1.2}
+\renewcommand{\arraystretch}{1.4}
 \caption{Matrice synthétique des droits d'accès par rôle}
 \label{tab:security-matrix}
-\begin{tabularx}{\textwidth}{p{3.6cm}p{3.2cm}XX}
-\toprule
-\textbf{Opération / ressource} & \textbf{Visiteur anonyme} & \textbf{Auteur connecté} & \textbf{Administrateur} \\
-\midrule
-\textbf{Authentification} & Inscription / Connexion & Session active & Session active \\
-\textbf{Articles publiés} & Consultation libre & Consultation libre & Modération \& Dépublication \\
-\textbf{Brouillons (\texttt{DRAFT})} & Inaccessibles & Création, édition \& suppression de ses brouillons & Consultation globale, édition \& publication \\
-\textbf{Commentaires sur publiés} & Lecture seule & Ajout, édition \& suppression de ses écrits & Ajout \& modération de tous les commentaires \\
-\textbf{Commentaires sur brouillons} & $\times$ (Interdit) & $\times$ (Interdit) & $\times$ (Interdit) \\
-\bottomrule
+\setlength{\arrayrulewidth}{0.4pt}
+\begin{tabularx}{\textwidth}{|>{\bfseries}p{3.4cm}|p{2.9cm}|X|X|}
+\hline
+\rowcolor{gray!75}
+\color{white}\textbf{Opération / ressource} & \color{white}\textbf{Visiteur anonyme} & \color{white}\textbf{Auteur connecté} & \color{white}\textbf{Administrateur} \\
+\hline
+\rowcolor{gray!10}
+Authentification & Inscription / Connexion & Session active & Session active \\
+\hline
+Articles publiés & Consultation libre & Consultation libre & Modération \& dépublication \\
+\hline
+\rowcolor{gray!10}
+Brouillons (\texttt{DRAFT}) & Inaccessibles & Création, édition \& suppression de ses brouillons & Consultation globale, édition \& publication \\
+\hline
+Commentaires sur publiés & Lecture seule & Ajout, édition \& suppression de ses écrits & Ajout \& modération de tous les commentaires \\
+\hline
+\rowcolor{gray!10}
+Commentaires sur brouillons & \centering$\times$ Interdit & \centering$\times$ Interdit & \centering\arraybackslash$\times$ Interdit \\
+\hline
 \end{tabularx}
 \end{table}
 
@@ -270,11 +279,11 @@ La sécurité combine deux niveaux complémentaires : le contrôle d'accès bas�
 
 L'application respecte les principes de l'architecture en couches (\textit{Layered Architecture}) :
 \begin{itemize}
-    \item[$\square$] \textbf{Couche présentation (Controllers)} : Définition des endpoints REST, validation des requêtes DTOs via Bean Validation (\texttt{@Valid}, \texttt{@NotBlank}, \texttt{@Email}), sérialisation JSON et documentation OpenAPI.
-    \item[$\square$] \textbf{Couche sécurité \& Filtres} : Filtre d'authentification interceptant les requêtes, déchiffrant le JWT et alimentant le contexte de sécurité. Les évaluateurs d'autorisation appliquent les règles de propriété des ressources.
-    \item[$\square$] \textbf{Couche métier (Services)} : Implémentation des règles fonctionnelles, vérification de l'intégrité (statut \texttt{DRAFT} vs \texttt{PUBLISHED}) et gestion transactionnelle (\texttt{@Transactional}).
-    \item[$\square$] \textbf{Couche persistance (Repositories)} : Interfaces d'accès aux données exploitant des requêtes JPQL sécurisées pour le filtrage contextuel et la pagination.
-    \item[$\square$] \textbf{Couche infrastructure} : Initialisation du schéma SQL et conteneurisation reproductible via \texttt{docker-compose.yml}.
+    \item \textbf{Couche présentation (Controllers)} : Définition des endpoints REST, validation des requêtes DTOs via Bean Validation (\texttt{@Valid}, \texttt{@NotBlank}, \texttt{@Email}), sérialisation JSON et documentation OpenAPI.
+    \item \textbf{Couche sécurité \& filtres} : Filtre d'authentification interceptant les requêtes, déchiffrant le JWT et alimentant le contexte de sécurité. Les évaluateurs d'autorisation appliquent les règles de propriété des ressources.
+    \item \textbf{Couche métier (Services)} : Implémentation des règles fonctionnelles, vérification de l'intégrité (statut \texttt{DRAFT} vs \texttt{PUBLISHED}) et gestion transactionnelle (\texttt{@Transactional}).
+    \item \textbf{Couche persistance (Repositories)} : Interfaces d'accès aux données exploitant des requêtes JPQL sécurisées pour le filtrage contextuel et la pagination.
+    \item \textbf{Couche infrastructure} : Initialisation du schéma SQL et conteneurisation reproductible via \texttt{docker-compose.yml}.
 \end{itemize}
 
 \subsection{Validation et tests automatisés du backend}
@@ -284,20 +293,28 @@ Afin de garantir la robustesse des règles de gestion et la stricte étanchéit�
 \begin{table}[htbp]
 \centering
 \small
-\renewcommand{\arraystretch}{1.25}
+\renewcommand{\arraystretch}{1.4}
 \caption{Synthèse concise des 18 tests automatisés du backend}
 \label{tab:test-suite}
-\begin{tabularx}{\textwidth}{llXcc}
-\toprule
-\textbf{Domaine} & \textbf{Type} & \textbf{Règles et Scénarios Validés} & \textbf{Tests} & \textbf{Statut} \\
-\midrule
-\textbf{Authentification} & Unitaire & Inscription nominale, unicité d'email (409), login valide et génération JWT & 3 & \checkmark \textbf{OK} \\
-\textbf{Articles} & Unitaire & Création en brouillon forcé, droits auteur, verrouillage publié, modération admin, workflow publier/dépublier, cascade & 7 & \checkmark \textbf{OK} \\
-\textbf{Commentaires} & Unitaire & Ajout sur publié, interdiction sur brouillon, modification/suppression auteur, modération admin & 7 & \checkmark \textbf{OK} \\
-\textbf{Sécurité Globale} & Intégration & Scénario complet en 15 étapes (création compte, isolation brouillon, publication admin, cascade) & 1 & \checkmark \textbf{OK} \\
-\midrule
-\multicolumn{3}{l}{\textbf{Total de la suite automatisée (exécutable via \texttt{mvn test})}} & \textbf{18} & \textbf{100\%} \\
-\bottomrule
+\setlength{\arrayrulewidth}{0.4pt}
+\begin{tabularx}{\textwidth}{|>{\bfseries}l|l|X|c|c|}
+\hline
+\rowcolor{gray!75}
+\color{white}\textbf{Domaine} & \color{white}\textbf{Type} & \color{white}\textbf{Scénarios validés} & \color{white}\textbf{Tests} & \color{white}\textbf{Statut} \\
+\hline
+\rowcolor{gray!10}
+Authentification & Unitaire & Inscription nominale, unicité d'email (409), login valide et génération JWT & 3 & \textcolor{green!50!black}{\checkmark} \\
+\hline
+Articles & Unitaire & Création en brouillon forcé, droits auteur, verrouillage publié, modération admin, workflow publier/dépublier, cascade & 7 & \textcolor{green!50!black}{\checkmark} \\
+\hline
+\rowcolor{gray!10}
+Commentaires & Unitaire & Ajout sur publié, interdiction sur brouillon, modification/suppression auteur, modération admin & 7 & \textcolor{green!50!black}{\checkmark} \\
+\hline
+Sécurité globale & Intégration & Scénario complet en 15 étapes (création compte, isolation brouillon, publication admin, cascade) & 1 & \textcolor{green!50!black}{\checkmark} \\
+\hline
+\rowcolor{gray!20}
+\multicolumn{3}{|l|}{\textbf{Total (exécutable via \texttt{mvn test})}} & \textbf{18} & \textbf{100\%} \\
+\hline
 \end{tabularx}
 \end{table}
 
