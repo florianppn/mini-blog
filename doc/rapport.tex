@@ -316,8 +316,6 @@ Sécurité globale & Intégration & Scénario complet en 15 étapes (création c
 
 \subsection{Choix de conception du client web}
 
-Cette sous-section détaille les 4 décisions structurantes du client web Angular, également vulgarisées pour en comprendre les raisons pratiques.
-
 \subsubsection{Axe 10 : Solution de style et design visuel}
 \paragraph{Question :} Comment concevoir une interface agréable, moderne et parfaitement lisible sur smartphone comme sur ordinateur ?
 \paragraph{Options :}
@@ -358,35 +356,6 @@ Cette sous-section détaille les 4 décisions structurantes du client web Angula
 \end{itemize}
 \paragraph{Pourquoi :} Permettre aux utilisateurs d'écrire du code HTML brut dans un formulaire est extrêmement dangereux : un pirate pourrait y glisser des scripts malveillants pour voler les comptes des lecteurs (attaques XSS). Le format Markdown est la solution idéale : il permet d'ajouter simplement du gras, des titres, des citations et du code informatique avec quelques symboles faciles à retenir (\texttt{\#}, \texttt{**}), tandis que notre application transforme ce texte en un affichage propre, lisible et garanti sans risque de sécurité.
 
-\subsection{Architecture logicielle et découpage modulaire}
-
-Le projet frontend est structuré selon les standards modernes d'Angular 18 (\textit{Standalone Components}, \textit{Signals}) :
-
-\begin{itemize}
-    \item \textbf{\texttt{src/app/core/}} : Éléments transversaux instanciés sous forme de singletons :
-    \begin{itemize}
-        \item \textbf{Services réactifs} : \texttt{AuthService} (gestion du token et signaux), \texttt{ArticleService} (appels REST paginés), \texttt{CommentService}, et \texttt{NetworkStatusService} (suivi de connectivité).
-        \item \textbf{Guards fonctionnels} : \texttt{authGuard} (protection auteur) et \texttt{adminGuard} (protection administration).
-        \item \textbf{Intercepteurs HTTP} : Injection automatique du jeton (\texttt{jwtInterceptor}) et gestion globale des erreurs (\texttt{errorInterceptor}).
-        \item \textbf{Modèles TypeScript} : Interfaces de données typées (\texttt{Article}, \texttt{User}, \texttt{Comment}, etc.).
-    \end{itemize}
-    \item \textbf{\texttt{src/app/features/}} : Composants métier dédiés aux différentes vues :
-    \begin{itemize}
-        \item \textbf{Flux public (\texttt{ArticleListComponent})} : Affichage en grille responsive des articles publiés, barre de recherche textuelle et pagination.
-        \item \textbf{Détail et commentaires (\texttt{ArticleDetailComponent})} : Lecture avec rendu Markdown, métadonnées et fil de commentaires avec modération contextuelle.
-        \item \textbf{Espace auteur (\texttt{MyDraftsComponent})} : Liste réservée aux articles au statut \texttt{DRAFT} appartenant au rédacteur connecté.
-        \item \textbf{Édition / création (\texttt{ArticleFormComponent})} : Formulaire réactif avec double onglet << Rédiger >> et << Prévisualiser >> pour un contrôle en temps réel du rendu Markdown.
-        \item \textbf{Dashboard administration (\texttt{AdminDashboardComponent})} : Console de modération complète avec métriques, filtres dynamiques, prévisualisation modale, et boutons de workflow (\textbf{Publier}, \textbf{Dépublier}, etc.).
-        \item \textbf{Authentification (\texttt{LoginComponent} \& \texttt{RegisterComponent})} : Formulaires sécurisés avec boutons d'amorçage rapide pour les profils de test (Admin et Auteur).
-    \end{itemize}
-    \item \textbf{\texttt{src/app/shared/}} : Composants et utilitaires réutilisables :
-    \begin{itemize}
-        \item \textbf{\texttt{NavbarComponent}} : Barre de navigation réactive s'adaptant instantanément à l'état de connexion et aux privilèges de l'utilisateur.
-        \item \textbf{\texttt{BackendErrorBannerComponent}} : Toast flottant non intrusif affiché lors d'une indisponibilité du serveur backend, avec bouton de reconnexion.
-        \item \textbf{\texttt{MarkdownPipe}} : Tube de transformation textuelle convertissant la syntaxe Markdown en balises HTML sécurisées.
-    \end{itemize}
-\end{itemize}
-
 \subsection{Écrans et parcours utilisateur}
 
 L'application couvre l'ensemble des parcours fonctionnels d'un blog collaboratif :
@@ -395,6 +364,8 @@ L'application couvre l'ensemble des parcours fonctionnels d'un blog collaboratif
     \item[$\square$] \textbf{Auteur authentifié} (\texttt{ROLE\_USER}) : Rédige des articles sur \texttt{/articles/nouveau} (créés en \texttt{DRAFT}). Il dispose de son espace \texttt{/mes-brouillons} pour retrouver ses articles en cours, les modifier et les supprimer. Il peut commenter les articles publiés.
     \item[$\square$] \textbf{Administrateur} (\texttt{ROLE\_ADMIN}) : Accède au dashboard de supervision \texttt{/admin}. Il visualise l'ensemble des articles du site, filtre par statut, ouvre la prévisualisation modale, et utilise les boutons d'action pour publier un brouillon ou dépublier un article. Il bénéficie également d'un pouvoir de modération absolue sur tous les commentaires.
 \end{itemize}
+
+\newpage
 
 % ==============================================================================
 % PARTIE III : DÉPLOIEMENT, SECRETS ET CONCLUSION
