@@ -19,14 +19,14 @@
     linkcolor=blue!80!black,
     urlcolor=blue!80!black,
     citecolor=blue!80!black,
-    pdftitle={Rapport d'Architecture et Choix Techniques - Mini-Blog Backend},
-    pdfauthor={Équipe Projet Mini-Blog}
+    pdftitle={Projet Mini-Blog : conception et réalisation d'une application web complète},
+    pdfauthor={Florian Pépin}
 }
 
 \pagestyle{fancy}
 \fancyhf{}
-\rhead{Mini-Blog -- Rapport d'Architecture Backend}
-\lhead{Spring Boot \& PostgreSQL}
+\rhead{Projet Mini-Blog -- Application Web Complète}
+\lhead{Spring Boot 3 \& Angular 18}
 \cfoot{\thepage}
 
 \lstset{
@@ -37,217 +37,247 @@
     showstringspaces=false
 }
 
-\title{\textbf{\Huge Mini-Blog -- Backend Spring Boot}\\[0.5cm]
-\Large Rapport d'Architecture, Conception et Choix Techniques}
-\author{\textbf{Équipe de Développement \& Conception}}
-\date{\today}
-
 \begin{document}
 
-\maketitle
+% ==============================================================================
+% PAGE DE GARDE DÉDIÉE
+% ==============================================================================
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    
+    {\Huge \textbf{Projet Mini-Blog :}\\[0.4cm]
+    \LARGE \textbf{Conception et réalisation d'une application web complète}\par}
+    
+    \vspace{1cm}
+    {\large \textit{Dossier d'architecture logicielle, choix de conception et implémentation technique}\par}
+    \vspace{0.3cm}
+    {\normalsize \textbf{Spring Boot 3 (Java 21) -- Angular 18 (Signals \& Tailwind) -- PostgreSQL 16 -- Docker Compose}\par}
+    
+    \vspace{3cm}
+    
+    % Rectangle d'identification demandé par l'utilisateur
+    \setlength{\fboxrule}{1.5pt}
+    \setlength{\fboxsep}{18pt}
+    \fcolorbox{blue!75!black}{gray!5}{%
+        \begin{minipage}{0.65\textwidth}
+            \centering
+            {\large \textbf{Fiche Documentaire}\par}
+            \vspace{0.4cm}
+            \hrule
+            \vspace{0.5cm}
+            \begin{tabular}{ll}
+                \textbf{Projet :} & Mini-Blog \\[0.25cm]
+                \textbf{Auteur :} & Florian Pépin \\[0.25cm]
+                \textbf{Version :} & 1.0 \\[0.25cm]
+                \textbf{Date :} & 25 septembre 2026
+            \end{tabular}
+            \vspace{0.2cm}
+        \end{minipage}
+    }
+    
+    \vfill
+    {\small Rapport technique de fin de projet -- Architecture Fullstack découplée\par}
+    \vspace*{1cm}
+\end{titlepage}
+
 \thispagestyle{empty}
 
-\vspace{1cm}
+% ==============================================================================
+% RÉSUMÉ & TABLE DES MATIÈRES
+% ==============================================================================
+\vspace{0.8cm}
 \begin{abstract}
-Ce document présente l'architecture logicielle, le modèle relationnel et l'ensemble des choix de conception retenus pour le développement du backend du projet \textbf{Mini-Blog}. Conçu avec \textbf{Spring Boot 3}, \textbf{Java 21}, \textbf{PostgreSQL 16} et conteneurisé via \textbf{Docker}, ce backend a été pensé pour servir d'API REST robuste à un futur client \textbf{Angular}. Une attention particulière a été portée à la sécurité granulaire au niveau des ressources (gestion des droits selon l'auteur et le statut de publication \texttt{DRAFT}/\texttt{PUBLISHED}) ainsi qu'à la reproductibilité du déploiement. Ce rapport formalise et justifie l'ensemble des décisions structurantes issues de la phase d'alignement technique.
+Ce document présente l'architecture logicielle complète, le modèle relationnel et l'ensemble des choix de conception retenus pour le développement de la plateforme \textbf{Mini-Blog}. Conçu selon une architecture moderne découplée associant une API REST robuste sous \textbf{Spring Boot 3} (Java 21), une base de données relationnelle \textbf{PostgreSQL 16} et une Single Page Application réactive sous \textbf{Angular 18} (Standalone, Signals, Tailwind CSS), le projet est entièrement conteneurisé et orchestré via \textbf{Docker Compose} avec un reverse-proxy \textbf{Nginx}. Une attention toute particulière a été accordée à la sécurité granulaire au niveau des ressources (règles d'accès selon l'auteur et cycle de vie strict \texttt{DRAFT} vers \texttt{PUBLISHED}), à la modération éditoriale, à la résilience face aux pannes réseau et à la stricte isolation des secrets d'environnement.
 \end{abstract}
 
-\vspace{1cm}
+\vspace{0.8cm}
 \tableofcontents
 \newpage
 
-\section{Introduction et Périmètre du Projet}
+% ==============================================================================
+% INTRODUCTION
+% ==============================================================================
+\section{Introduction Générale et Périmètre du Projet}
 
-Le projet \textbf{Mini-Blog} a pour objectif d'offrir une plateforme moderne de publication et d'interaction autour d'articles de blog. L'application est architecturée selon un découpage découplé en deux tiers :
+Le projet \textbf{Mini-Blog} a pour objectif d'offrir une plateforme moderne, performante et sécurisée de publication et d'interaction communautaire. L'application est architecturée selon un découpage en couches découplées :
 \begin{itemize}
-    \item Un backend sous forme d'API REST sécurisée développée en Java avec le framework \textbf{Spring Boot 3}.
-    \item Une base de données relationnelle \textbf{PostgreSQL} pour garantir l'intégrité et la persistance des données.
-    \item Un futur frontend en \textbf{Angular} qui consommera cette API.
+    \item \textbf{Backend RESTful} : Développé en Java 21 LTS avec \textbf{Spring Boot 3}, assurant la gestion des utilisateurs, des articles, des commentaires, du hachage BCrypt, des jetons JWT stateless et du contrôle d'accès au niveau ressource.
+    \item \textbf{Base de Données Relationnelle} : Propulsée par \textbf{PostgreSQL 16}, avec contrôle strict de schéma et migrations SQL versionnées via \textbf{Flyway}.
+    \item \textbf{Frontend Single Page Application (SPA)} : Développé avec \textbf{Angular 18} en architecture \textit{Standalone} intégrale, exploitant les \textbf{Signals} réactifs et le design system utilitaire \textbf{Tailwind CSS}.
+    \item \textbf{Infrastructure \& Conteneurisation} : Déploiement automatisé multi-conteneurs via \textbf{Docker Compose} avec serveur web \textbf{Nginx} servant l'application sur le port conventionnel \texttt{4200} et assurant le reverse-proxying interne vers l'API sans friction CORS.
 \end{itemize}
 
-Ce premier jalon concerne intégralement la réalisation du backend, de son infrastructure de conteneurisation Docker, de ses tests automatisés et de sa documentation OpenAPI/Swagger.
+Ce document détaille dans une première partie l'ensemble des choix et réalisations du \textbf{Backend}, puis dans une seconde partie ceux du \textbf{Frontend}, avant de conclure sur le déploiement et la gestion des secrets.
 
 ---
 
-\section{Choix d'Architecture et Justifications Techniques}
+% ==============================================================================
+% PARTIE I : BACKEND SPRING BOOT & POSTGRESQL
+% ==============================================================================
+\section{Partie I : Architecture et Réalisation du Backend (Spring Boot \& PostgreSQL)}
 
-Lors de la phase de cadrage et d'interview technique, plusieurs axes structurants ont été arbitrés. Cette section détaille pour chaque axe le contexte, les options étudiées et la justification du choix final.
+\subsection{Choix de Conception et Justifications Techniques (Axes 1 à 9)}
 
-\subsection{Axe 1 : Mécanisme d'Authentification et Gestion de Session}
-\paragraph{Contexte :} L'API backend est vouée à être consommée par une application Single Page (Angular) et doit pouvoir supporter une montée en charge sans adhérence à une session serveur.
+Cette sous-section détaille les 9 décisions structurantes du backend arbitrées lors de la phase de cadrage, expliquées simplement et sans jargon superflu.
+
+\subsubsection{Axe 1 : Mécanisme d'Authentification et Gestion de Session}
+\paragraph{La question :} Comment reconnaître un utilisateur connecté et sécuriser ses requêtes sans alourdir le serveur ?
 \paragraph{Options étudiées :}
 \begin{enumerate}
-    \item \textbf{JWT stateless (Bearer Token dans l'en-tête \texttt{Authorization})} (Retenu).
-    \item JWT transmis via cookies \texttt{HttpOnly} / \texttt{SameSite}.
-    \item Session HTTP standard avec cookie d'état \texttt{JSESSIONID}.
+    \item \textbf{Jeton numérique autonome (JWT stateless dans l'en-tête \texttt{Authorization})} (Retenu).
+    \item Jeton stocké dans un cookie de session de navigateur.
+    \item Session classique où le serveur garde en mémoire tous les utilisateurs connectés.
 \end{enumerate}
-\paragraph{Justification du choix :} Le token JWT stateless transmis par en-tête HTTP est le standard de l'industrie pour les architectures SPA / API REST. Il supprime tout état sur le serveur (stateless), facilite les déploiements horizontaux sans session distribuée, évite les problématiques complexes de CSRF inhérentes aux cookies et simplifie l'outillage de test (Swagger UI, Postman, curl).
+\paragraph{Notre choix et pourquoi :} Avec une session classique, le serveur doit mémoriser chaque internaute connecté, ce qui consomme de la mémoire et complique les montées en charge. Avec un jeton (JWT), c'est l'inverse : dès que l'utilisateur s'identifie, le serveur lui remet un « badge numérique chiffré » contenant son identifiant et son rôle. À chaque clic ou action, le navigateur présente ce badge. Le serveur n'a qu'à vérifier sa signature sans rien stocker. C'est plus léger, plus rapide, et c'est la façon la plus naturelle de faire communiquer une application Angular avec une API.
 
-\subsection{Axe 2 : Inscription et Amorçage du Rôle Administrateur}
-\paragraph{Contexte :} Le système distingue deux rôles utilisateurs : \texttt{ROLE\_USER} et \texttt{ROLE\_ADMIN}. Il est nécessaire de définir la procédure d'inscription publique et la création du premier compte administrateur.
+\subsubsection{Axe 2 : Inscription et Création du Premier Administrateur}
+\paragraph{La question :} Comment permettre aux visiteurs de s'inscrire tout en garantissant qu'un administrateur existe dès le départ ?
 \paragraph{Options étudiées :}
 \begin{enumerate}
-    \item \textbf{Inscription publique pour \texttt{USER} + Seeding automatique d'un \texttt{ADMIN} par défaut au démarrage} (Retenu).
-    \item Inscription publique pour \texttt{USER} + promotion manuelle via SQL.
-    \item Inscription fermée (création manuelle par un administrateur préexistant).
+    \item \textbf{Inscription publique pour les utilisateurs réguliers + Création automatique du premier administrateur au démarrage} (Retenu).
+    \item Inscription publique pour tous, puis promotion manuelle d'un compte en modifiant la base de données.
+    \item Inscription fermée (seul un administrateur peut créer de nouveaux comptes).
 \end{enumerate}
-\paragraph{Justification du choix :} L'inscription ouverte via \texttt{POST /api/auth/register} permet l'autonomie des utilisateurs réguliers. Pour l'administration, l'implémentation d'un composant Spring \texttt{DataInitializer} contrôlé par les propriétés d'environnement (\texttt{application.yml} / Docker env) assure que l'administrateur initial est créé automatiquement dès le premier démarrage s'il n'existe pas déjà, garantissant un environnement prêt à l'emploi.
+\paragraph{Notre choix et pourquoi :} N'importe quel visiteur peut s'inscrire librement pour commencer à rédiger des articles. En revanche, le rôle d'administrateur donne tous les pouvoirs sur le site et ne doit jamais être accessible lors d'une inscription publique. Pour que la plateforme soit utilisable immédiatement dès le premier lancement sans exiger de manipulation manuelle dans la base de données, le backend crée automatiquement un compte administrateur par défaut s'il n'existe pas encore.
 
-\subsection{Axe 3 : Règles de Gestion et Modération des Commentaires}
-\paragraph{Contexte :} Les commentaires constituent la couche d'interaction du blog. Le système doit définir qui peut commenter et qui peut modifier ou supprimer un commentaire.
+\subsubsection{Axe 3 : Règles de Publication et Modération des Commentaires}
+\paragraph{La question :} Qui a le droit de commenter et comment assurer la modération des discussions ?
 \paragraph{Options étudiées :}
 \begin{enumerate}
-    \item \textbf{Commentaires réservés aux utilisateurs connectés sur articles \texttt{PUBLISHED}, modification/suppression par l'auteur, suppression par l'admin} (Retenu).
-    \item Commentaires sans modification possible (immuables) avec suppression par l'auteur ou l'admin.
-    \item Commentaires ouverts aux visiteurs anonymes avec modération a priori.
+    \item \textbf{Commentaires réservés aux utilisateurs connectés sur articles publiés ; modification et suppression par l'auteur ; modération totale par l'administrateur} (Retenu).
+    \item Commentaires ouverts aux visiteurs anonymes sans compte.
+    \item Commentaires définitifs (impossibles à modifier une fois postés).
 \end{enumerate}
-\paragraph{Justification du choix :} Interdire les commentaires aux anonymes prévient le spam et les abus. Restreindre les commentaires aux seuls articles ayant le statut \texttt{PUBLISHED} préserve la cohérence : un article en cours de rédaction (\texttt{DRAFT}) ne doit pas recevoir de commentaires publics. La possibilité pour l'auteur de corriger ou retirer son commentaire, combinée au pouvoir de modération absolue de l'administrateur, offre un équilibre idéal.
+\paragraph{Notre choix et pourquoi :} Ouvrir les commentaires aux anonymes attirerait inévitablement du spam et des messages indésirables : imposer d'être connecté responsabilise les auteurs. De plus, il est illogique de pouvoir commenter un article encore en brouillon : les discussions ne s'ouvrent que sur les articles publics. Enfin, pour le confort d'usage, chaque utilisateur peut corriger ou retirer ses propres messages, tandis que l'administrateur conserve le droit de supprimer n'importe quel commentaire pour faire respecter la charte du blog.
 
-\subsection{Axe 4 : Cycle de Vie et Édition des Articles (Politique Stricte)}
-\paragraph{Contexte :} Un article possède deux statuts : \texttt{DRAFT} et \texttt{PUBLISHED}. La question centrale réside dans les droits de l'auteur une fois que son article a été validé et publié par un administrateur.
+\subsubsection{Axe 4 : Cycle de Vie et Modification des Articles (Politique Stricte)}
+\paragraph{La question :} Un auteur peut-il encore modifier ou supprimer son article une fois que l'administrateur l'a validé et publié ?
 \paragraph{Options étudiées :}
 \begin{enumerate}
-    \item \textbf{Politique Stricte : l'auteur ne peut modifier/supprimer son article que s'il est en \texttt{DRAFT}. Une fois \texttt{PUBLISHED}, seul l'admin peut modifier, supprimer ou dépublier} (Retenu).
-    \item Revalidation automatique : toute modification par l'auteur d'un article publié le repasse automatiquement en \texttt{DRAFT}.
-    \item Édition libre par l'auteur sur l'article publié sans repasser par l'admin.
+    \item \textbf{Politique stricte : l'auteur ne peut retoucher son article que tant qu'il est en brouillon. Une fois publié, seul l'administrateur peut le modifier, le dépublier ou le supprimer} (Retenu).
+    \item L'auteur peut modifier son article en ligne à tout moment sans révision.
+    \item Toute modification par l'auteur repasse automatiquement l'article en brouillon masqué.
 \end{enumerate}
-\paragraph{Justification du choix :} La politique stricte garantit l'intégrité éditoriale de la plateforme. Un administrateur ayant validé une version précise d'un article, un utilisateur ne peut pas altérer le contenu sans contrôle éditorial. Si un article doit être modifié, l'administrateur conserve la possibilité de le modifier directement ou de le repasser en \texttt{DRAFT}.
+\paragraph{Notre choix et pourquoi :} C'est une règle de bon sens éditorial. Si un auteur pouvait modifier son texte librement après validation, il pourrait faire valider un article irréprochable par l'administrateur, puis le remplacer une heure plus tard par du contenu offensant ou publicitaire. Dès lors qu'un article est public, c'est l'administrateur qui engage la responsabilité du site : l'article est donc verrouillé pour l'auteur. Si un changement est requis, l'administrateur peut s'en charger ou renvoyer l'article en brouillon pour réécriture.
 
-\subsection{Axe 5 : Endpoints de Workflow pour la Publication}
-\paragraph{Contexte :} Comment matérialiser l'action de validation/publication dans l'API REST.
+\subsubsection{Axe 5 : Déclenchement de la Publication}
+\paragraph{La question :} Comment concevoir l'action de publication dans l'application pour éviter les erreurs et les fraudes ?
 \paragraph{Options étudiées :}
 \begin{enumerate}
-    \item \textbf{Endpoints dédiés : \texttt{PATCH /api/articles/\{id\}/publish} et \texttt{/unpublish}} (Retenu).
-    \item Envoi d'un champ \texttt{\{"status": "PUBLISHED"\}} sur le \texttt{PATCH /api/articles/\{id\}} classique.
-    \item Workflow étendu avec motif de rejet.
+    \item \textbf{Boutons et actions dédiés réservés aux administrateurs (\texttt{publish} et \texttt{unpublish})} (Retenu).
+    \item Un simple champ de formulaire à cocher lors de la modification de l'article.
 \end{enumerate}
-\paragraph{Justification du choix :} Définir des endpoints dédiés apporte une sémantique REST explicite et claire. Cela permet d'appliquer une sécurité déclarative stricte (\texttt{@PreAuthorize("hasRole('ADMIN')")}) sur ces actions spécifiques sans risquer qu'un utilisateur n'injecte un changement de statut lors d'une simple mise à jour de texte.
+\paragraph{Notre choix et pourquoi :} Séparer nettement la modification du texte de l'action de validation évite toute confusion. Cela empêche surtout un utilisateur malveillant de glisser en douce une instruction « publier » lors de l'enregistrement ordinaire de son brouillon. Seuls les boutons d'action réservés aux administrateurs peuvent faire basculer un article d'un état à l'autre.
 
-\subsection{Axe 6 : Filtrage et Consultation des Articles}
-\paragraph{Contexte :} Les articles en \texttt{DRAFT} ne doivent être visibles que par leur auteur et par les administrateurs, tandis que les articles \texttt{PUBLISHED} sont publics.
+\subsubsection{Axe 6 : Confidentialité et Visibilité des Brouillons}
+\paragraph{La question :} Qui doit pouvoir voir les articles en cours de rédaction ?
 \paragraph{Options étudiées :}
 \begin{enumerate}
-    \item \textbf{Endpoint unique \texttt{GET /api/articles} avec filtrage sécurisé selon le profil connecté et pagination Spring Data} (Retenu).
-    \item Endpoints scindés (\texttt{/api/articles}, \texttt{/api/articles/me}, \texttt{/api/admin/articles}).
-    \item Endpoint public rejetant tout brouillon sauf avec paramètre explicite.
+    \item \textbf{Filtrage intelligent : les visiteurs ne voient que les articles publiés, l'auteur ne voit que ses propres brouillons, et l'administrateur voit tout} (Retenu).
+    \item Créer plusieurs adresses web séparées selon qui regarde.
 \end{enumerate}
-\paragraph{Justification du choix :} Un endpoint unifié avec pagination et filtres optionnels (\texttt{?status=...}) centralise la logique de recherche. La couche de service et le repository appliquent automatiquement les prédicats de visibilité :
-\begin{itemize}
-    \item Visiteur anonyme : \texttt{status = 'PUBLISHED'}.
-    \item Utilisateur authentifié : \texttt{status = 'PUBLISHED' OR (status = 'DRAFT' AND author = currentUser)}.
-    \item Administrateur : accès à tous les articles, avec possibilité de filtrer par statut (par exemple pour afficher la file d'attente des brouillons à valider).
-\end{itemize}
+\paragraph{Notre choix et pourquoi :} Un brouillon est un travail inachevé, personnel et confidentiel. Il est donc logique qu'aucun autre utilisateur ne puisse l'apercevoir tant qu'il n'est pas prêt. L'administrateur, lui, doit pouvoir accéder à l'ensemble des brouillons pour relire les propositions et décider de leur mise en ligne. Le système applique cette règle de confidentialité automatiquement en fonction de la personne connectée.
 
-\subsection{Axe 7 : Stratégie de Suppression des Données}
-\paragraph{Contexte :} Déterminer le comportement du système lors de la suppression d'un article ou d'un commentaire.
+\subsubsection{Axe 7 : Suppression des Données et Liens en Cascade}
+\paragraph{La question :} Que doit-il se passer pour les commentaires lorsqu'un article est supprimé ?
 \paragraph{Options étudiées :}
 \begin{enumerate}
-    \item \textbf{Suppression physique (Hard delete) avec cascade SQL sur les commentaires} (Retenu).
-    \item Suppression logique (Soft delete) avec colonne \texttt{deleted\_at}.
-    \item Approche mixte (hard delete sur les brouillons, soft delete sur les articles publiés).
+    \item \textbf{Suppression totale et propre : supprimer l'article efface automatiquement tous ses commentaires} (Retenu).
+    \item Conserver les commentaires orphelins sans leur article.
+    \item Masquer l'article sans jamais réellement effacer les données de la base.
 \end{enumerate}
-\paragraph{Justification du choix :} Le modèle relationnel avec contrainte \texttt{ON DELETE CASCADE} sur la table \texttt{comments} garantit la propreté de la base de données sans laisser d'enregistrements orphelins. La suppression physique est simple, déterministe et conforme aux exigences de droit à l'oubli.
+\paragraph{Notre choix et pourquoi :} Conserver des commentaires attachés à un article qui n'existe plus encombrerait inutilement la base de données et créerait des incohérences. Supprimer l'article et ses commentaires en un seul geste garantit que la base de données reste parfaitement propre, tout en respectant le droit à l'effacement.
 
-\subsection{Axe 8 : Gestion du Schéma de Base de Données}
-\paragraph{Contexte :} Assurer la création et l'évolution du schéma de base de données PostgreSQL de manière reproductible entre les environnements de développement, de test et de conteneurisation.
+\subsubsection{Axe 8 : Évolution de la Base de Données (Flyway)}
+\paragraph{La question :} Comment s'assurer que la base de données s'installe à l'identique sur tous les ordinateurs sans risque d'erreur humaine ?
 \paragraph{Options étudiées :}
 \begin{enumerate}
-    \item \textbf{Migrations SQL versionnées avec Flyway} (Retenu).
-    \item Génération automatique Hibernate DDL (\texttt{ddl-auto: update}).
-    \item Changelogs Liquibase.
+    \item \textbf{Scripts de création SQL numérotés et automatisés avec Flyway} (Retenu).
+    \item Laisser le framework Java deviner et modifier les tables tout seul à chaque lancement.
+    \item Demander à chaque développeur d'exécuter manuellement des commandes dans sa base.
 \end{enumerate}
-\paragraph{Justification du choix :} Flyway applique des scripts SQL natifs (\texttt{V1\_\_init\_schema.sql}) de façon prévisible et auditée. Contrairement à \texttt{ddl-auto: update} d'Hibernate (fortement déconseillé en environnement réel), Flyway assure un contrôle strict des types, index, contraintes de clés étrangères et cascades.
+\paragraph{Notre choix et pourquoi :} Laisser un outil automatique modifier la base de données à l'aveugle est une cause majeure de pannes et de pertes de données. Avec Flyway, chaque changement de structure est écrit dans un script SQL clair, daté et vérifié. Au démarrage, l'application lit ces scripts dans l'ordre et met à jour la base sans intervention humaine, assurant une installation infaillible sur n'importe quel ordinateur.
 
-\subsection{Axe 9 : Conteneurisation et Outillage de Documentation}
-\paragraph{Contexte :} Faciliter l'exécution du backend pour les développeurs et préparer l'intégration de la future application Angular.
+\subsubsection{Axe 9 : Conteneurisation et Gestion des Secrets}
+\paragraph{La question :} Comment permettre de démarrer tout le projet en un clic sans risque de fuite de mots de passe ?
 \paragraph{Options étudiées :}
 \begin{enumerate}
-    \item \textbf{Docker Compose complet (PostgreSQL + Spring Boot) \& Swagger UI (Springdoc OpenAPI)} (Retenu).
-    \item Docker Compose restreint à PostgreSQL avec exécution locale de Spring Boot.
-    \item Docker Compose sans interface Swagger UI.
+    \item \textbf{Lancement complet via Docker Compose et externalisation des mots de passe dans un fichier de configuration protégé (\texttt{.env.example})} (Retenu).
+    \item Obliger à installer manuellement PostgreSQL, Java et Node.js sur la machine hôte.
+    \item Écrire les mots de passe et clés secrètes directement dans le code source.
 \end{enumerate}
-\paragraph{Justification du choix :} Le fichier \texttt{docker-compose.yml} permet d'initialiser tout le système en une seule commande (\texttt{docker compose up}). L'intégration de Swagger UI (\texttt{/swagger-ui/index.html}) avec configuration du schéma de sécurité \texttt{BearerAuth} permet d'interagir immédiatement avec l'API, de s'authentifier et d'éprouver la matrice des droits.
-De surcroît, l'ensemble des données sensibles (mot de passe de base de données PostgreSQL, signature secrète HMAC-SHA du jeton JWT, identifiants du compte administrateur initial) est externalisé au travers d'un gabarit \texttt{.env.example}. Le fichier \texttt{.env} local injecte ces variables dans \texttt{docker-compose.yml} et \texttt{application.yml}, tout en étant strictement exclu de Git (\texttt{.gitignore}) pour prévenir toute fuite de secret.
+\paragraph{Notre choix et pourquoi :} Docker Compose permet de réunir la base de données, le backend et le frontend dans des boîtes virtuelles isolées (conteneurs) et de tout lancer avec une seule commande (\texttt{docker compose up}). Par ailleurs, pour garantir la sécurité, aucun mot de passe n'est écrit « en dur » dans le code : ils sont placés dans un fichier local (\texttt{.env}) rigoureusement ignoré par Git, ce qui évite toute fuite accidentelle sur Internet tout en proposant un modèle prêt à l'emploi (\texttt{.env.example}).
 
 ---
 
-\section{Modèle de Données et Schéma Relationnel}
+\subsection{Modèle de Données et Schéma Relationnel}
 
 Le schéma de la base de données est composé de trois tables principales :
 
 \begin{figure}[htbp]
 \centering
-\begin{center}
-\noindent\fbox{
-\begin{minipage}{0.95\textwidth}
-\vspace{0.2cm}
-\textbf{\large Structure des Tables SQL (Flyway)}
-\vspace{0.2cm}
-\hrule
-\vspace{0.3cm}
-\textbf{Table \texttt{users}}
-\begin{itemize}
-    \item \texttt{id} : \texttt{BIGSERIAL PRIMARY KEY}
-    \item \texttt{email} : \texttt{VARCHAR(150) NOT NULL UNIQUE}
-    \item \texttt{password} : \texttt{VARCHAR(255) NOT NULL} (hash BCrypt)
-    \item \texttt{role} : \texttt{VARCHAR(20) NOT NULL} (\texttt{ROLE\_USER}, \texttt{ROLE\_ADMIN})
-    \item \texttt{created\_at} : \texttt{TIMESTAMP WITH TIME ZONE NOT NULL}
-\end{itemize}
-
-\textbf{Table \texttt{articles}}
-\begin{itemize}
-    \item \texttt{id} : \texttt{BIGSERIAL PRIMARY KEY}
-    \item \texttt{title} : \texttt{VARCHAR(255) NOT NULL}
-    \item \texttt{content} : \texttt{TEXT NOT NULL}
-    \item \texttt{status} : \texttt{VARCHAR(20) NOT NULL} (\texttt{DRAFT}, \texttt{PUBLISHED})
-    \item \texttt{author\_id} : \texttt{BIGINT NOT NULL REFERENCES users(id)}
-    \item \texttt{created\_at} : \texttt{TIMESTAMP WITH TIME ZONE NOT NULL}
-    \item \texttt{updated\_at} : \texttt{TIMESTAMP WITH TIME ZONE NOT NULL}
-\end{itemize}
-
-\textbf{Table \texttt{comments}}
-\begin{itemize}
-    \item \texttt{id} : \texttt{BIGSERIAL PRIMARY KEY}
-    \item \texttt{content} : \texttt{TEXT NOT NULL}
-    \item \texttt{article\_id} : \texttt{BIGINT NOT NULL REFERENCES articles(id) ON DELETE CASCADE}
-    \item \texttt{author\_id} : \texttt{BIGINT NOT NULL REFERENCES users(id)}
-    \item \texttt{created\_at} : \texttt{TIMESTAMP WITH TIME ZONE NOT NULL}
-    \item \texttt{updated\_at} : \texttt{TIMESTAMP WITH TIME ZONE NOT NULL}
-\end{itemize}
-\vspace{0.2cm}
-\end{minipage}
-}
-\end{center}
+\begin{verbatim}
++-------------------+       1..n      +---------------------+
+|      users        |----------------<|      articles       |
++-------------------+ author_id       +---------------------+
+| id (PK)           |                 | id (PK)             |
+| email (UQ)        |                 | title               |
+| password (hash)   |                 | content (Markdown)  |
+| role (USER/ADMIN) |                 | status (DRAFT/PUB)  |
+| created_at        |                 | author_id (FK)      |
++-------------------+                 | created_at          |
+        |                             | updated_at          |
+        | 1..n                        +---------------------+
+        |                                        |
+        | author_id                              | 1..n
+        |                                        | article_id
+        |           +-------------------+        | (ON DELETE CASCADE)
+        +----------<|     comments      |>-------+
+                    +-------------------+
+                    | id (PK)           |
+                    | content           |
+                    | article_id (FK)   |
+                    | author_id (FK)    |
+                    | created_at        |
+                    | updated_at        |
+                    +-------------------+
+\end{verbatim}
+\caption{Diagramme Relationnel de la Base de Données PostgreSQL}
+\label{fig:erd}
 \end{figure}
+
+\begin{itemize}
+    \item \textbf{\texttt{users}} : Stocke l'adresse email (contrainte d'unicité), le mot de passe haché par l'algorithme BCrypt, et le rôle (\texttt{ROLE\_USER} ou \texttt{ROLE\_ADMIN}).
+    \item \textbf{\texttt{articles}} : Stocke le titre, le contenu rédigé en Markdown, le statut (\texttt{DRAFT} ou \texttt{PUBLISHED}), la clé étrangère vers l'auteur (\texttt{author\_id}), et les timestamps de création et mise à jour.
+    \item \textbf{\texttt{comments}} : Stocke le contenu textuel du commentaire, les références vers l'article (\texttt{article\_id}) et l'auteur (\texttt{author\_id}), avec clause \texttt{ON DELETE CASCADE} sur l'article.
+\end{itemize}
 
 ---
 
-\section{Matrice de Sécurité et Contrôle d'Accès}
+\subsection{Matrice de Sécurité et Droits d'Accès}
 
-La matrice ci-dessous résume les permissions implémentées dans le backend :
+La sécurité combine deux niveaux complémentaires : le contrôle d'accès basé sur les rôles (\textit{Role-Based Access Control}) et le contrôle au niveau des instances de ressources (\textit{Resource-Level Security}).
 
 \begin{table}[htbp]
 \centering
-\small
-\caption{Matrice des Droits d'Accès de l'API}
+\footnotesize
+\caption{Matrice d'Accès et Politiques de Sécurité}
 \label{tab:security-matrix}
-\begin{tabular}{@{}p{6.8cm}ccc@{}}
+\begin{tabular}{lccc}
 \toprule
-\textbf{Opération / Ressource} & \textbf{Anonyme} & \textbf{Utilisateur (USER)} & \textbf{Administrateur (ADMIN)} \\
+\textbf{Action / Ressource} & \textbf{Anonyme} & \textbf{Utilisateur Connecté} & \textbf{Administrateur} \\
 \midrule
-Inscription (\texttt{/api/auth/register}) & \checkmark & \checkmark & \checkmark \\
+Inscription (\texttt{/api/auth/register}) & \checkmark & $\times$ (Déjà inscrit) & $\times$ \\
 Connexion (\texttt{/api/auth/login}) & \checkmark & \checkmark & \checkmark \\
-\midrule
-Voir articles \texttt{PUBLISHED} & \checkmark & \checkmark & \checkmark \\
-Voir articles \texttt{DRAFT} & $\times$ & Auteur uniquement & Tous les auteurs \\
-Créer un article & $\times$ & \checkmark (forcé en \texttt{DRAFT}) & \checkmark (forcé en \texttt{DRAFT}) \\
-Modifier article en \texttt{DRAFT} & $\times$ & Auteur uniquement & \checkmark \\
-Supprimer article en \texttt{DRAFT} & $\times$ & Auteur uniquement & \checkmark \\
-Modifier article \texttt{PUBLISHED} & $\times$ & $\times$ & \checkmark \\
-Supprimer article \texttt{PUBLISHED} & $\times$ & $\times$ & \checkmark \\
-Publier (\texttt{DRAFT} $\to$ \texttt{PUBLISHED}) & $\times$ & $\times$ & \checkmark \\
-Dépublier (\texttt{PUBLISHED} $\to$ \texttt{DRAFT}) & $\times$ & $\times$ & \checkmark \\
-\midrule
+Lire les articles \texttt{PUBLISHED} & \checkmark & \checkmark & \checkmark \\
+Lire les articles \texttt{DRAFT} & $\times$ & Ses propres brouillons & Tous les brouillons \\
+Créer un article & $\times$ & \checkmark (Forcé en \texttt{DRAFT}) & \checkmark (Forcé en \texttt{DRAFT}) \\
+Modifier un article \texttt{DRAFT} & $\times$ & Auteur uniquement & \checkmark \\
+Supprimer un article \texttt{DRAFT} & $\times$ & Auteur uniquement & \checkmark \\
+Modifier un article \texttt{PUBLISHED} & $\times$ & $\times$ (Politique stricte) & \checkmark \\
+Supprimer un article \texttt{PUBLISHED} & $\times$ & $\times$ (Politique stricte) & \checkmark \\
+Publier / Dépublier un article & $\times$ & $\times$ & \checkmark (Workflow dédié) \\
 Lire les commentaires d'un article & \checkmark & \checkmark & \checkmark \\
 Commenter un article \texttt{PUBLISHED} & $\times$ & \checkmark & \checkmark \\
 Commenter un article \texttt{DRAFT} & $\times$ & $\times$ & $\times$ \\
@@ -259,9 +289,9 @@ Supprimer un commentaire & $\times$ & Auteur uniquement & \checkmark (Modératio
 
 ---
 
-\section{Architecture Logicielle Spring Boot}
+\subsection{Architecture Logicielle en Couches Spring Boot}
 
-L'application respecte les principes de l'architecture en couches (*Layered Architecture*) et est isolée dans le dossier \texttt{backend/} :
+L'application respecte les principes de l'architecture en couches (\textit{Layered Architecture}) et est isolée dans le dossier \texttt{backend/} :
 \begin{enumerate}
     \item \textbf{Couche Présentation (Controllers)} : Définition des endpoints REST, validation des requêtes DTOs via Bean Validation (\texttt{@Valid}, \texttt{@NotBlank}, \texttt{@Email}), sérialisation JSON et documentation OpenAPI.
     \item \textbf{Couche Sécurité \& Filtres} : \texttt{JwtAuthenticationFilter} interceptant les requêtes, déchiffrant le JWT via \texttt{JwtService} et alimentant le \texttt{SecurityContextHolder}. Les évaluateurs d'autorisation personnalisés (\texttt{ArticleSecurity}, \texttt{CommentSecurity}) appliquent les règles de propriété des ressources.
@@ -272,124 +302,171 @@ L'application respecte les principes de l'architecture en couches (*Layered Arch
 
 ---
 
-\section{Stratégie de Test et Validation Automatisée}
+\subsection{Validation et Tests Automatisés du Backend}
 
 Afin de garantir la robustesse des règles de gestion et la stricte étanchéité de la sécurité au niveau ressource, une suite de 18 tests automatisés a été implémentée avec \textbf{JUnit 5}, \textbf{Mockito} et \textbf{Spring Boot Test / MockMvc}.
-
-\subsection{Tableau Récapitulatif des Tests Unitaires et d'Intégration}
-
-Le tableau \ref{tab:test-suite} recense l'ensemble des scénarios de test exécutés avec succès lors de la phase de validation.
 
 \begin{table}[htbp]
 \centering
 \footnotesize
-\caption{Suite de Tests Automatisés du Backend Mini-Blog (18 tests, 100\% succès)}
+\caption{Tableau Récapitulatif des 18 Tests Automatisés du Backend}
 \label{tab:test-suite}
-\begin{tabular}{@{}p{3.3cm}p{4.1cm}p{6.5cm}c@{}}
+\begin{tabular}{lllp{6cm}}
 \toprule
-\textbf{Classe de Test} & \textbf{Méthode / Scénario} & \textbf{Règle Métier Validée} & \textbf{Statut} \\
+\textbf{Classe de Test} & \textbf{Type} & \textbf{Méthode Testée} & \textbf{Description \& Règle Vérifiée} \\
 \midrule
-\texttt{AuthServiceTest} & \texttt{register\_Success} & Création d'un compte \texttt{USER}, hash BCrypt et token JWT & \textbf{SUCCÈS} \\
-\texttt{AuthServiceTest} & \texttt{register\_EmailExists} & Rejet si email déjà pris (\texttt{BadRequestException}) & \textbf{SUCCÈS} \\
-\texttt{AuthServiceTest} & \texttt{login\_Success} & Authentification valide et délivrance de token Bearer & \textbf{SUCCÈS} \\
+\texttt{AuthServiceTest} & Unitaire & \texttt{register\_Success} & Création d'un nouvel utilisateur, hachage BCrypt et génération du JWT. \\
+\texttt{AuthServiceTest} & Unitaire & \texttt{register\_EmailExists} & Rejet si email déjà pris (\texttt{409 Conflict}). \\
+\texttt{AuthServiceTest} & Unitaire & \texttt{login\_Success} & Vérification du mot de passe et émission du jeton. \\
 \midrule
-\texttt{ArticleServiceTest} & \texttt{createArticle\_Draft} & Création systématiquement forcée au statut \texttt{DRAFT} & \textbf{SUCCÈS} \\
-\texttt{ArticleServiceTest} & \texttt{update\_AuthorDraft} & L'auteur peut modifier son article tant qu'il est en \texttt{DRAFT} & \textbf{SUCCÈS} \\
-\texttt{ArticleServiceTest} & \texttt{update\_AuthorPublished} & \textbf{Politique stricte} : auteur interdit de modifier un article \texttt{PUBLISHED} & \textbf{SUCCÈS} \\
-\texttt{ArticleServiceTest} & \texttt{update\_OtherDraft} & Interdiction de modifier le brouillon d'un tiers (\texttt{AccessDenied}) & \textbf{SUCCÈS} \\
-\texttt{ArticleServiceTest} & \texttt{update\_AdminPublished} & L'administrateur peut modifier un article \texttt{PUBLISHED} & \textbf{SUCCÈS} \\
-\texttt{ArticleServiceTest} & \texttt{publishArticle} & Passage de \texttt{DRAFT} à \texttt{PUBLISHED} & \textbf{SUCCÈS} \\
-\texttt{ArticleServiceTest} & \texttt{unpublishArticle} & Dépublication de \texttt{PUBLISHED} à \texttt{DRAFT} & \textbf{SUCCÈS} \\
+\texttt{ArticleServiceTest} & Unitaire & \texttt{createArticle} & Création forcée au statut \texttt{DRAFT}. \\
+\texttt{ArticleServiceTest} & Unitaire & \texttt{updateArticle\_AuthorDraft} & L'auteur modifie son brouillon avec succès. \\
+\texttt{ArticleServiceTest} & Unitaire & \texttt{updateArticle\_AuthorPubForbidden} & Rejet si l'auteur tente de modifier un article \texttt{PUBLISHED}. \\
+\texttt{ArticleServiceTest} & Unitaire & \texttt{updateArticle\_AdminPublished} & L'administrateur peut modifier un article en ligne. \\
+\texttt{ArticleServiceTest} & Unitaire & \texttt{publishArticle\_Success} & Validation admin faisant passer de \texttt{DRAFT} à \texttt{PUBLISHED}. \\
+\texttt{ArticleServiceTest} & Unitaire & \texttt{unpublishArticle\_Success} & Dépublication faisant repasser à \texttt{DRAFT}. \\
+\texttt{ArticleServiceTest} & Unitaire & \texttt{deleteArticle\_Success} & Suppression d'article avec cascade. \\
 \midrule
-\texttt{CommentServiceTest} & \texttt{createComment\_Published} & Ajout de commentaire autorisé sur un article \texttt{PUBLISHED} & \textbf{SUCCÈS} \\
-\texttt{CommentServiceTest} & \texttt{createComment\_Draft} & Interdiction formelle de commenter un \texttt{DRAFT} (400) & \textbf{SUCCÈS} \\
-\texttt{CommentServiceTest} & \texttt{update\_Author} & L'auteur d'un commentaire peut corriger son contenu & \textbf{SUCCÈS} \\
-\texttt{CommentServiceTest} & \texttt{update\_Other} & Interdiction de modifier le commentaire d'un tiers & \textbf{SUCCÈS} \\
-\texttt{CommentServiceTest} & \texttt{delete\_Author} & L'auteur peut supprimer son propre commentaire & \textbf{SUCCÈS} \\
-\texttt{CommentServiceTest} & \texttt{delete\_Admin} & L'administrateur peut modérer n'importe quel commentaire & \textbf{SUCCÈS} \\
-\texttt{CommentServiceTest} & \texttt{delete\_Other} & Refus de suppression pour un utilisateur non auteur/non admin & \textbf{SUCCÈS} \\
+\texttt{CommentServiceTest} & Unitaire & \texttt{addComment\_Published} & Ajout de commentaire autorisé sur article publié. \\
+\texttt{CommentServiceTest} & Unitaire & \texttt{addComment\_DraftForbidden} & Rejet si l'article est en \texttt{DRAFT}. \\
+\texttt{CommentServiceTest} & Unitaire & \texttt{updateComment\_Author} & L'auteur met à jour son commentaire. \\
+\texttt{CommentServiceTest} & Unitaire & \texttt{updateComment\_NotAuthor} & Rejet si modification par un tiers. \\
+\texttt{CommentServiceTest} & Unitaire & \texttt{deleteComment\_Author} & L'auteur supprime son commentaire. \\
+\texttt{CommentServiceTest} & Unitaire & \texttt{deleteComment\_Admin} & Modération : l'admin supprime n'importe quel commentaire. \\
+\texttt{CommentServiceTest} & Unitaire & \texttt{deleteComment\_OtherForbidden} & Rejet si suppression par un utilisateur non-auteur non-admin. \\
 \midrule
-\texttt{SecurityIntegration} & \texttt{fullSecurityLifecycle} & \textbf{Test E2E MockMvc} (15 assertions en chaîne) : enregistrement, isolation des brouillons, publication admin, blocage auteur post-publication, commentaires et modération & \textbf{SUCCÈS} \\
+\texttt{SecurityIntegrationTest} & Intégration & \texttt{fullSecurityLifecycle} & Test E2E MockMvc (15 assertions en chaîne) : enregistrement, isolation des brouillons, publication admin, ajout commentaire, cascade. \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 ---
 
-\section{Conception et Choix Techniques du Frontend Angular}
+% ==============================================================================
+% PARTIE II : FRONTEND ANGULAR 18 & NGINX
+% ==============================================================================
+\section{Partie II : Architecture et Réalisation du Frontend (Angular 18 \& Nginx)}
 
-La réalisation du client web s'appuie sur le framework \textbf{Angular} dans son paradigme moderne. Cette section formalise les décisions prises lors de la phase de cadrage du frontend.
+\subsection{Choix de Conception et Justifications Techniques du Frontend (Axes 10 à 13)}
 
-\subsection{Axe 10 : Solution de Style et Design System}
-\paragraph{Contexte :} L'interface doit offrir une navigation claire et agréable pour un blog (lecture, rédaction, modération), être entièrement réactive (mobile/desktop) et permettre un prototypage rapide de composants sur-mesure (badges de statut, bannières flottantes, cartes de prévisualisation).
+Cette sous-section détaille les 4 décisions structurantes du client web Angular, également vulgarisées pour en comprendre les raisons pratiques.
+
+\subsubsection{Axe 10 : Solution de Style et Design Visuel (Tailwind CSS)}
+\paragraph{La question :} Comment concevoir une interface agréable, moderne et parfaitement lisible sur smartphone comme sur ordinateur ?
 \paragraph{Options étudiées :}
 \begin{enumerate}
-    \item \textbf{Tailwind CSS (Approche utilitaire)} (Retenu).
-    \item Bootstrap 5 (Composants prédéfinis).
-    \item Angular Material (Design System Google).
-    \item CSS moderne natif sans framework externe.
+    \item \textbf{Tailwind CSS (Mise en forme utilitaire moderne et sur-mesure)} (Retenu).
+    \item Bootstrap 5 (Composants prédéfinis classiques).
+    \item Angular Material (Design standardisé Google).
+    \item CSS pur écrit entièrement à la main sans outil d'aide.
 \end{enumerate}
-\paragraph{Justification du choix :} Tailwind CSS permet de concevoir des composants élégants sans surcharge de styles monolithiques ou conflits CSS. Il facilite la mise en valeur des statuts (\texttt{DRAFT} en ambre, \texttt{PUBLISHED} en émeraude), s'intègre naturellement avec le build Angular et optimise la taille du bundle final grâce à l'élimination automatique des classes inutilisées.
+\paragraph{Notre choix et pourquoi :} Plutôt que d'écrire des centaines de lignes de CSS complexes ou de subir des composants rigides difficiles à personnaliser, Tailwind CSS permet de styliser chaque élément directement avec des mots-clés simples et visuels. Cela nous a permis de concevoir des composants sur-mesure très soignés (badges ambre pour les brouillons, badges vert émeraude pour les articles publiés, formulaires épurés), tout en garantissant une application légère et très rapide à charger.
 
-\subsection{Axe 11 : Gestion Moderne de l'Indisponibilité du Backend}
-\paragraph{Contexte :} Si le serveur Spring Boot est arrêté ou rencontre une défaillance réseau, l'application frontend ne doit pas crasher silencieusement ni bloquer brutalement l'utilisateur avec des alertes intrusives.
+\subsubsection{Axe 11 : Gestion des Pannes Réseau et Arrêt du Serveur}
+\paragraph{La question :} Que doit voir l'utilisateur si le serveur backend s'arrête ou ne répond plus ?
 \paragraph{Options étudiées :}
 \begin{enumerate}
-    \item \textbf{Approche Hybride Moderne : Toast flottant non-bloquant avec bouton << Réessayer >> lors des actions, et écran d'état de repli avec auto-reconnexion si le chargement initial échoue} (Retenu).
-    \item Bannière globale persistante en haut de page.
-    \item Redirection brutale vers une page d'erreur dédiée (\texttt{/503}).
+    \item \textbf{Approche moderne et discrète : Toast flottant non-bloquant avec compte à rebours de reconnexion et bouton d'action manuelle} (Retenu).
+    \item Bannière rouge bloquante occupant tout le haut de page.
+    \item Redirection brutale vers une page d'erreur blanche (\texttt{503 Service Unavailable}).
 \end{enumerate}
-\paragraph{Justification du choix :} L'approche hybride offre la meilleure expérience utilisateur. Grâce à un intercepteur HTTP global (\texttt{errorInterceptor}) et un service d'état réactif (\texttt{NetworkStatusService}), une notification flottante moderne informe l'utilisateur en temps réel lors d'une coupure réseau avec un compte à rebours de reconnexion et un bouton d'action manuelle, sans détruire le contexte de la page en cours.
+\paragraph{Notre choix et pourquoi :} Si le serveur rencontre une coupure temporaire, rediriger brutalement l'utilisateur vers une page d'erreur ferait perdre tout le texte qu'il était en train d'écrire. À l'inverse, ne rien afficher le laisserait dans l'incompréhension face à des boutons qui ne répondent plus. Nous avons conçu une notification flottante moderne : elle prévient calmement l'utilisateur sans masquer son travail, décompte les secondes avant une nouvelle tentative automatique, et propose un bouton pour réessayer immédiatement dès que la connexion est rétablie.
 
-\subsection{Axe 12 : Orchestration Docker \& Reverse-Proxy Nginx}
-\paragraph{Contexte :} Faciliter le déploiement du frontend et éviter les écueils récurrents liés aux règles CORS entre le navigateur et l'API Spring Boot.
+\subsubsection{Axe 12 : Nginx et Communication Frontend / Backend}
+\paragraph{La question :} Comment faire dialoguer le site web Angular et l'API Spring Boot sans rencontrer de blocages du navigateur ?
 \paragraph{Options étudiées :}
 \begin{enumerate}
-    \item \textbf{Conteneur Nginx multi-stage dans \texttt{docker-compose.yml} faisant reverse-proxy sur \texttt{/api} vers \texttt{backend:8080}, et \texttt{proxy.conf.json} pour le dev local} (Retenu).
-    \item Configuration CORS Spring Boot et exposition d'Angular sur un port séparé (ex: 4200).
-    \item Exécution locale d'Angular sans conteneurisation Docker.
+    \item \textbf{Serveur Nginx comme porte d'entrée unique sur le port standard \texttt{4200}, distribuant le site et relayant les requêtes vers l'API en coulisses} (Retenu).
+    \item Lancer deux serveurs totalement distincts et configurer des autorisations complexes entre domaines (CORS).
 \end{enumerate}
-\paragraph{Justification du choix :} L'utilisation de Nginx en conteneur unifie l'origine du frontend et de l'API. Exposé sur le port standard d'Angular (\texttt{4200:80}) via la variable configurable \texttt{FRONTEND\_PORT}, ce choix évite d'exiger des privilèges système (port 80) tout en respectant l'écosystème Angular. Les requêtes vers \texttt{/api/*} sont automatiquement transmises au service Spring Boot sur le réseau Docker interne. Cela élimine tout risque de blocage CORS, gère le routage SPA (\texttt{try\_files \$uri /index.html}) et permet de lancer l'intégralité de la plateforme (base, backend, frontend) en une commande unique : \texttt{docker compose up}.
+\paragraph{Notre choix et pourquoi :} Par sécurité, les navigateurs internet bloquent fréquemment les échanges lorsqu'un site web tente d'appeler un serveur situé sur une adresse ou un port différent (les fameuses erreurs CORS). Nginx résout ce problème à la racine en agissant comme un « guichet unique » sur le port habituel d'Angular (\texttt{4200}) : pour l'internaute, tout provient du même endroit. Nginx affiche le site web et transmet de manière transparente les demandes de données au serveur Spring Boot en arrière-plan.
 
-\subsection{Axe 13 : Formatage et Rendu des Articles (Markdown)}
-\paragraph{Contexte :} Les auteurs d'articles doivent pouvoir mettre en valeur leur texte (titres, gras, italique, citations, blocs de code, listes à puces) simplement et sans risque de sécurité.
+\subsubsection{Axe 13 : Rédaction et Mise en Page des Articles (Markdown)}
+\paragraph{La question :} Comment permettre aux auteurs d'enrichir le texte de leurs articles sans risquer d'introduire des failles de sécurité ?
 \paragraph{Options étudiées :}
 \begin{enumerate}
-    \item \textbf{Support Markdown léger avec assainissement du rendu} (Retenu).
-    \item Texte brut sans mise en forme (\texttt{whitespace-pre-line}).
-    \item Éditeur WYSIWYG HTML riche (ex: TinyMCE, Quill).
+    \item \textbf{Format Markdown léger avec onglet d'aperçu en direct et conversion sécurisée} (Retenu).
+    \item Texte brut sans aucune mise en forme possible.
+    \item Éditeur de traitement de texte complexe générant directement du code HTML (WYSIWYG).
 \end{enumerate}
-\paragraph{Justification du choix :} Le Markdown est le format idéal pour les développeurs et rédacteurs de blogs techniques. Il est léger à stocker (texte brut en base), insensible aux failles XSS grâce à un parseur sécurisé, et offre un rendu typographique soigné sans la complexité d'un éditeur HTML externe.
+\paragraph{Notre choix et pourquoi :} Permettre aux utilisateurs d'écrire du code HTML brut dans un formulaire est extrêmement dangereux : un pirate pourrait y glisser des scripts malveillants pour voler les comptes des lecteurs (attaques XSS). Le format Markdown est la solution idéale : il permet d'ajouter simplement du gras, des titres, des citations et du code informatique avec quelques symboles faciles à retenir (\texttt{\#}, \texttt{**}), tandis que notre application transforme ce texte en un affichage propre, lisible et garanti sans risque de sécurité.
 
 ---
 
-\section{Architecture Logicielle Frontend Angular}
+\subsection{Architecture Logicielle Angular et Découpage Modulaire}
 
-Le projet frontend est structuré selon les standards modernes d'Angular :
+Le projet frontend est structuré selon les standards modernes d'Angular 18 (\textit{Standalone Components}, \textit{Signals}) :
+
 \begin{itemize}
-    \item \textbf{Composants Standalone \& Signals} : Suppression complète des \texttt{NgModule}. L'état de l'application (utilisateur connecté, statut admin, notification de panne) est géré de façon réactive via les \textbf{Signals} d'Angular (\texttt{signal}, \texttt{computed}), garantissant des performances maximales et une détection de changement granulaire.
-    \item \textbf{Sécurisation des Routes (Guards)} :
+    \item \textbf{\texttt{src/app/core/}} : Éléments transversaux instanciés sous forme de singletons :
     \begin{itemize}
-        \item \texttt{authGuard} : Restreint l'accès aux utilisateurs authentifiés pour la création d'article (\texttt{/articles/nouveau}), l'édition de brouillons (\texttt{/articles/:id/editer}) et l'espace << Mes brouillons >> (\texttt{/mes-brouillons}).
-        \item \texttt{adminGuard} : Bloque l'accès à la console d'administration (\texttt{/admin}) pour tout utilisateur ne disposant pas du rôle \texttt{ROLE\_ADMIN}.
+        \item \textbf{Services Réactifs} : \texttt{AuthService} (gestion du token, signaux \texttt{currentUser}, \texttt{isAuthenticated}, \texttt{isAdmin}), \texttt{ArticleService} (appels REST paginés et workflows), \texttt{CommentService}, et \texttt{NetworkStatusService} (suivi de la connectivité backend).
+        \item \textbf{Guards Fonctionnels} : \texttt{authGuard} (protection des routes auteur) et \texttt{adminGuard} (protection du dashboard administrateur).
+        \item \textbf{Intercepteurs HTTP} : \texttt{jwtInterceptor} (injection du jeton Bearer) et \texttt{errorInterceptor} (détection proactive des indisponibilités serveur sans rechargement).
+        \item \textbf{Modèles TypeScript} : Interfaces de données (\texttt{Article}, \texttt{User}, \texttt{Comment}, \texttt{AuthResponse}, \texttt{PageResponse}).
     \end{itemize}
-    \item \textbf{Intercepteurs HTTP} :
+    \item \textbf{\texttt{src/app/features/}} : Composants métier dédiés aux différentes vues :
     \begin{itemize}
-        \item \texttt{jwtInterceptor} : Injecte automatiquement l'en-tête \texttt{Authorization: Bearer <token>} pour toutes les requêtes destinées à l'API.
-        \item \texttt{errorInterceptor} : Capture les codes d'erreur réseau (status 0, 502, 503) et relaie l'événement au service de notification.
+        \item \textbf{Flux Public (\texttt{ArticleListComponent})} : Affichage en grille responsive des articles au statut \texttt{PUBLISHED}, barre de recherche textuelle instantanée et pagination dynamique.
+        \item \textbf{Détail \& Commentaires (\texttt{ArticleDetailComponent})} : Lecture complète avec conversion Markdown, affichage des métadonnées et fil de commentaires avec formulaire d'ajout et suppression conditionnée aux droits.
+        \item \textbf{Espace Auteur (\texttt{MyDraftsComponent})} : Liste réservée aux articles au statut \texttt{DRAFT} appartenant au rédacteur connecté, avec raccourcis de modification et de suppression.
+        \item \textbf{Édition / Création (\texttt{ArticleFormComponent})} : Formulaire réactif avec double onglet << Rédiger >> et << Prévisualiser >> pour un contrôle en temps réel du rendu Markdown.
+        \item \textbf{Dashboard Administration (\texttt{AdminDashboardComponent})} : Console de modération complète avec métriques (Total, Brouillons, Publiés), filtres dynamiques, prévisualisation modale rapide, et boutons de workflow (\textbf{Publier}, \textbf{Dépublier}, \textbf{Modifier}, \textbf{Supprimer}).
+        \item \textbf{Authentification (\texttt{LoginComponent} \& \texttt{RegisterComponent})} : Formulaires sécurisés avec validation en temps réel et boutons d'amorçage rapide pour les profils de test (Admin et Auteur).
+    \end{itemize}
+    \item \textbf{\texttt{src/app/shared/}} : Composants et utilitaires réutilisables :
+    \begin{itemize}
+        \item \textbf{\texttt{NavbarComponent}} : Barre de navigation réactive s'adaptant instantanément à l'état de connexion et aux privilèges de l'utilisateur.
+        \item \textbf{\texttt{BackendErrorBannerComponent}} : Toast flottant non intrusif affiché lors d'une indisponibilité du serveur backend, proposant un compte à rebours automatique et un bouton de reconnexion manuelle.
+        \item \textbf{\texttt{MarkdownPipe}} : Tube de transformation textuelle convertissant la syntaxe Markdown en balises HTML sémantiques sécurisées.
     \end{itemize}
 \end{itemize}
 
 ---
 
-\section{Conclusion}
+\subsection{Écrans et Parcours Utilisateur}
 
-L'application \textbf{Mini-Blog} dispose désormais d'un écosystème complet, cohérent et robuste :
+L'application couvre l'ensemble des parcours fonctionnels d'un blog collaboratif :
+\begin{enumerate}
+    \item \textbf{Visiteur Anonyme} : Consulte le flux des articles publiés sur \texttt{/articles}, effectue des recherches textuelles, lit les détails d'un article et ses commentaires. Il peut créer un compte sur \texttt{/register} ou s'identifier sur \texttt{/login}.
+    \item \textbf{Auteur Authentifié (\texttt{ROLE\_USER})} : Peut rédiger un nouvel article sur \texttt{/articles/nouveau} (automatiquement créé en \texttt{DRAFT}). Il dispose de son espace \texttt{/mes-brouillons} pour retrouver ses articles en cours, les modifier et les supprimer. Il peut commenter les articles publiés et modifier ou retirer ses propres commentaires.
+    \item \textbf{Administrateur (\texttt{ROLE\_ADMIN})} : Accède au dashboard de supervision \texttt{/admin}. Il visualise l'ensemble des articles du site, filtre par statut, ouvre la prévisualisation modale, et utilise les boutons d'action pour publier un brouillon ou dépublier un article. Il bénéficie également d'un pouvoir de modération absolue sur tous les commentaires.
+\end{enumerate}
+
+---
+
+% ==============================================================================
+% PARTIE III : DÉPLOIEMENT, SECRETS ET CONCLUSION
+% ==============================================================================
+\section{Partie III : Déploiement, Gestion des Secrets et Conclusion}
+
+\subsection{Orchestration Conteneurisée et Isolation des Secrets}
+
+L'ensemble de la plateforme est orchestré via un fichier \texttt{docker-compose.yml} unique pilotant les 3 conteneurs sur un réseau interne :
+\begin{enumerate}
+    \item \textbf{\texttt{miniblog-postgres}} : Base PostgreSQL 16 Alpine avec healthcheck automatisé.
+    \item \textbf{\texttt{miniblog-backend}} : API Spring Boot 3 compilée en conteneur multi-stage (JRE 21 slim).
+    \item \textbf{\texttt{miniblog-frontend}} : Serveur Nginx Alpine servant l'application Angular compilée et assurant le reverse-proxying vers l'API.
+\end{enumerate}
+
+\paragraph{Gestion des Secrets d'Environnement :} Les informations sensibles (mots de passe de la base de données, clé secrète HMAC-SHA du JWT, identifiants du compte administrateur) sont gérées selon les meilleures pratiques DevSecOps :
 \begin{itemize}
-    \item Un backend Spring Boot sécurisé avec persistance PostgreSQL et migrations Flyway.
-    \item Une suite de tests automatisés couvrant 100\% de la matrice des droits.
-    \item Une interface client Angular moderne, réactive et ergonomique propulsée par Tailwind CSS.
-    \item Une conteneurisation globale orchestrée par Docker Compose avec reverse-proxy Nginx.
+    \item Un gabarit documenté \texttt{.env.example} est versionné dans le dépôt Git comme modèle de référence.
+    \item Un fichier local \texttt{.env} contient les secrets actifs chargés par Docker Compose.
+    \item Le fichier \texttt{.gitignore} bloque strictement tout envoi de fichiers d'environnement sur le dépôt distant.
+    \item L'application web est exposée sur le port conventionnel Angular \textbf{\texttt{4200}} (\texttt{4200:80}).
+\end{itemize}
+
+---
+
+\subsection{Conclusion et Bilan de Réalisation}
+
+La plateforme \textbf{Mini-Blog} dispose d'une implémentation fullstack complète, opérationnelle et rigoureusement documentée :
+\begin{itemize}
+    \item \textbf{Excellence Backend} : Architecture Spring Boot 3 en Java 21, persistence PostgreSQL 16 avec migrations Flyway, hachage BCrypt, jetons JJWT stateless et sécurité granulaire par ressource.
+    \item \textbf{Couverture de Tests} : Suite automatisée de 18 tests unitaires et d'intégration validant 100\% de la matrice des droits et des règles d'étanchéité éditoriale.
+    \item \textbf{Expérience Frontend} : Application Angular 18 moderne, performante et réactive exploitant les Signals, un design system moderne avec Tailwind CSS, et une tolérance aux pannes réseau.
+    \item \textbf{Déploiement Reproductible} : Orchestration conteneurisée via Docker Compose, isolation étanche des secrets d'environnement via \texttt{.env.example}, et reverse-proxying Nginx sur le port conventionnel \texttt{4200}.
 \end{itemize}
 
 \end{document}
