@@ -362,11 +362,11 @@ Sécurité globale & Intégration & Scénario complet en 17 étapes (isolation b
 \paragraph{Question :} Comment prévenir les erreurs de manipulation et suppressions accidentelles sans dégrader l'expérience utilisateur ?
 \paragraph{Options :}
 \begin{itemize}
-    \item[$\boxtimes$] Boîte de dialogue modale réutilisable (\texttt{ConfirmDialog}) réactive, avec charte graphique par sévérité (\textit{danger}, \textit{warning}, \textit{info}) et accessibilité clavier (\textit{Échap}, \textit{Entrée}).
+    \item[$\boxtimes$] Boîte de dialogue modale réutilisable (\texttt{ConfirmDialog}) réactive, avec charte graphique par sévérité (\textit{danger}, \textit{warning}, \textit{success}, \textit{info}) et accessibilité clavier (\textit{Échap}, \textit{Entrée}).
     \item[$\square$] Alertes natives du navigateur (\texttt{window.confirm()}), austères, bloquantes et non stylisables.
     \item[$\square$] Exécution immédiate au premier clic sans aucune confirmation préalable.
 \end{itemize}
-\paragraph{Pourquoi :} Les suppressions d'articles ou de commentaires ainsi que les changements de statut éditorial (dépublication, soumission pour validation, annulation, renvoi en brouillon) sont des opérations à impact fort ou irréversibles. Un composant modal sur mesure garantit une expérience visuelle moderne, harmonisée avec la charte Tailwind CSS, tout en prévenant les clics involontaires.
+\paragraph{Pourquoi :} Les suppressions d'articles ou de commentaires ainsi que les changements de statut éditorial (validation et mise en ligne publique, dépublication, soumission pour validation, annulation, renvoi en brouillon) sont des opérations à impact fort ou irréversibles. Un composant modal sur mesure garantit une expérience visuelle moderne, harmonisée avec la charte Tailwind CSS, tout en prévenant les clics involontaires.
 
 \subsection{Écrans et parcours utilisateur}
 

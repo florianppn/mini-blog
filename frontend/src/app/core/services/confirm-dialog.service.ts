@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 
-export type ConfirmVariant = 'danger' | 'warning' | 'info';
+export type ConfirmVariant = 'danger' | 'warning' | 'info' | 'success';
 
 export interface ConfirmOptions {
   title: string;
