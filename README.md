@@ -22,11 +22,6 @@ docker compose up --build -d
 | **API REST (Backend)** | [http://localhost:8080](http://localhost:8080) |
 | **Documentation Swagger UI** | [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html) |
 
-### Compte Administrateur par Défaut
-
-- **Email** : `admin@miniblog.com`
-- **Mot de passe** : `adminPassword123!`
-
 ---
 
 ## Développement Local
