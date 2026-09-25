@@ -275,17 +275,6 @@ Commentaires sur brouillons & \centering$\times$ Interdit & \centering$\times$ I
 \end{tabularx}
 \end{table}
 
-\subsection{Architecture logicielle en couches}
-
-L'application respecte les principes de l'architecture en couches (\textit{Layered Architecture}) :
-\begin{itemize}
-    \item \textbf{Couche présentation (Controllers)} : Définition des endpoints REST, validation des requêtes DTOs via Bean Validation (\texttt{@Valid}, \texttt{@NotBlank}, \texttt{@Email}), sérialisation JSON et documentation OpenAPI.
-    \item \textbf{Couche sécurité \& filtres} : Filtre d'authentification interceptant les requêtes, déchiffrant le JWT et alimentant le contexte de sécurité. Les évaluateurs d'autorisation appliquent les règles de propriété des ressources.
-    \item \textbf{Couche métier (Services)} : Implémentation des règles fonctionnelles, vérification de l'intégrité (statut \texttt{DRAFT} vs \texttt{PUBLISHED}) et gestion transactionnelle (\texttt{@Transactional}).
-    \item \textbf{Couche persistance (Repositories)} : Interfaces d'accès aux données exploitant des requêtes JPQL sécurisées pour le filtrage contextuel et la pagination.
-    \item \textbf{Couche infrastructure} : Initialisation du schéma SQL et conteneurisation reproductible via \texttt{docker-compose.yml}.
-\end{itemize}
-
 \subsection{Validation et tests automatisés du backend}
 
 Afin de garantir la robustesse des règles de gestion et la stricte étanchéité de la sécurité au niveau ressource, une suite de 18 tests automatisés a été implémentée avec JUnit 5, Mockito et MockMvc.
@@ -317,6 +306,8 @@ Sécurité globale & Intégration & Scénario complet en 15 étapes (création c
 \hline
 \end{tabularx}
 \end{table}
+
+\newpage
 
 % ==============================================================================
 % PARTIE II : FRONTEND
