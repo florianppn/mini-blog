@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: mini-blog
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/miniblog}
+    username: ${SPRING_DATASOURCE_USERNAME:miniblog}
+    password: ${SPRING_DATASOURCE_PASSWORD:miniblog_password}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+    expiration-ms: ${APP_JWT_EXPIRATION_MS:86400000}
+  admin:
+    email: ${APP_ADMIN_EMAIL:admin@miniblog.com}
+    password: ${APP_ADMIN_PASSWORD:adminPassword123!}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+
+server:
+  port: 8080

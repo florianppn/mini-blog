@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: miniblog-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: miniblog
+      POSTGRES_USER: miniblog
+      POSTGRES_PASSWORD: miniblog_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U miniblog -d miniblog"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: miniblog-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/miniblog
+      SPRING_DATASOURCE_USERNAME: miniblog
+      SPRING_DATASOURCE_PASSWORD: miniblog_password
+      APP_JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      APP_JWT_EXPIRATION_MS: 86400000
+      APP_ADMIN_EMAIL: admin@miniblog.com
+      APP_ADMIN_PASSWORD: adminPassword123!
+
+volumes:
+  postgres_data:

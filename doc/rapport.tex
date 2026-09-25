@@ -1,0 +1,279 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{fancyhdr}
+\setlength{\headheight}{14.5pt}
+\addtolength{\topmargin}{-2.5pt}
+\usepackage{listings}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!80!black,
+    urlcolor=blue!80!black,
+    citecolor=blue!80!black,
+    pdftitle={Rapport d'Architecture et Choix Techniques - Mini-Blog Backend},
+    pdfauthor={Équipe Projet Mini-Blog}
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Mini-Blog -- Rapport d'Architecture Backend}
+\lhead{Spring Boot \& PostgreSQL}
+\cfoot{\thepage}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    backgroundcolor=\color{gray!10},
+    frame=single,
+    breaklines=true,
+    showstringspaces=false
+}
+
+\title{\textbf{\Huge Mini-Blog -- Backend Spring Boot}\\[0.5cm]
+\Large Rapport d'Architecture, Conception et Choix Techniques}
+\author{\textbf{Équipe de Développement \& Conception}}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+\vspace{1cm}
+\begin{abstract}
+Ce document présente l'architecture logicielle, le modèle relationnel et l'ensemble des choix de conception retenus pour le développement du backend du projet \textbf{Mini-Blog}. Conçu avec \textbf{Spring Boot 3}, \textbf{Java 21}, \textbf{PostgreSQL 16} et conteneurisé via \textbf{Docker}, ce backend a été pensé pour servir d'API REST robuste à un futur client \textbf{Angular}. Une attention particulière a été portée à la sécurité granulaire au niveau des ressources (gestion des droits selon l'auteur et le statut de publication \texttt{DRAFT}/\texttt{PUBLISHED}) ainsi qu'à la reproductibilité du déploiement. Ce rapport formalise et justifie l'ensemble des décisions structurantes issues de la phase d'alignement technique.
+\end{abstract}
+
+\vspace{1cm}
+\tableofcontents
+\newpage
+
+\section{Introduction et Périmètre du Projet}
+
+Le projet \textbf{Mini-Blog} a pour objectif d'offrir une plateforme moderne de publication et d'interaction autour d'articles de blog. L'application est architecturée selon un découpage découplé en deux tiers :
+\begin{itemize}
+    \item Un backend sous forme d'API REST sécurisée développée en Java avec le framework \textbf{Spring Boot 3}.
+    \item Une base de données relationnelle \textbf{PostgreSQL} pour garantir l'intégrité et la persistance des données.
+    \item Un futur frontend en \textbf{Angular} qui consommera cette API.
+\end{itemize}
+
+Ce premier jalon concerne intégralement la réalisation du backend, de son infrastructure de conteneurisation Docker, de ses tests automatisés et de sa documentation OpenAPI/Swagger.
+
+---
+
+\section{Choix d'Architecture et Justifications Techniques}
+
+Lors de la phase de cadrage et d'interview technique, plusieurs axes structurants ont été arbitrés. Cette section détaille pour chaque axe le contexte, les options étudiées et la justification du choix final.
+
+\subsection{Axe 1 : Mécanisme d'Authentification et Gestion de Session}
+\paragraph{Contexte :} L'API backend est vouée à être consommée par une application Single Page (Angular) et doit pouvoir supporter une montée en charge sans adhérence à une session serveur.
+\paragraph{Options étudiées :}
+\begin{enumerate}
+    \item \textbf{JWT stateless (Bearer Token dans l'en-tête \texttt{Authorization})} (Retenu).
+    \item JWT transmis via cookies \texttt{HttpOnly} / \texttt{SameSite}.
+    \item Session HTTP standard avec cookie d'état \texttt{JSESSIONID}.
+\end{enumerate}
+\paragraph{Justification du choix :} Le token JWT stateless transmis par en-tête HTTP est le standard de l'industrie pour les architectures SPA / API REST. Il supprime tout état sur le serveur (stateless), facilite les déploiements horizontaux sans session distribuée, évite les problématiques complexes de CSRF inhérentes aux cookies et simplifie l'outillage de test (Swagger UI, Postman, curl).
+
+\subsection{Axe 2 : Inscription et Amorçage du Rôle Administrateur}
+\paragraph{Contexte :} Le système distingue deux rôles utilisateurs : \texttt{ROLE\_USER} et \texttt{ROLE\_ADMIN}. Il est nécessaire de définir la procédure d'inscription publique et la création du premier compte administrateur.
+\paragraph{Options étudiées :}
+\begin{enumerate}
+    \item \textbf{Inscription publique pour \texttt{USER} + Seeding automatique d'un \texttt{ADMIN} par défaut au démarrage} (Retenu).
+    \item Inscription publique pour \texttt{USER} + promotion manuelle via SQL.
+    \item Inscription fermée (création manuelle par un administrateur préexistant).
+\end{enumerate}
+\paragraph{Justification du choix :} L'inscription ouverte via \texttt{POST /api/auth/register} permet l'autonomie des utilisateurs réguliers. Pour l'administration, l'implémentation d'un composant Spring \texttt{DataInitializer} contrôlé par les propriétés d'environnement (\texttt{application.yml} / Docker env) assure que l'administrateur initial est créé automatiquement dès le premier démarrage s'il n'existe pas déjà, garantissant un environnement prêt à l'emploi.
+
+\subsection{Axe 3 : Règles de Gestion et Modération des Commentaires}
+\paragraph{Contexte :} Les commentaires constituent la couche d'interaction du blog. Le système doit définir qui peut commenter et qui peut modifier ou supprimer un commentaire.
+\paragraph{Options étudiées :}
+\begin{enumerate}
+    \item \textbf{Commentaires réservés aux utilisateurs connectés sur articles \texttt{PUBLISHED}, modification/suppression par l'auteur, suppression par l'admin} (Retenu).
+    \item Commentaires sans modification possible (immuables) avec suppression par l'auteur ou l'admin.
+    \item Commentaires ouverts aux visiteurs anonymes avec modération a priori.
+\end{enumerate}
+\paragraph{Justification du choix :} Interdire les commentaires aux anonymes prévient le spam et les abus. Restreindre les commentaires aux seuls articles ayant le statut \texttt{PUBLISHED} préserve la cohérence : un article en cours de rédaction (\texttt{DRAFT}) ne doit pas recevoir de commentaires publics. La possibilité pour l'auteur de corriger ou retirer son commentaire, combinée au pouvoir de modération absolue de l'administrateur, offre un équilibre idéal.
+
+\subsection{Axe 4 : Cycle de Vie et Édition des Articles (Politique Stricte)}
+\paragraph{Contexte :} Un article possède deux statuts : \texttt{DRAFT} et \texttt{PUBLISHED}. La question centrale réside dans les droits de l'auteur une fois que son article a été validé et publié par un administrateur.
+\paragraph{Options étudiées :}
+\begin{enumerate}
+    \item \textbf{Politique Stricte : l'auteur ne peut modifier/supprimer son article que s'il est en \texttt{DRAFT}. Une fois \texttt{PUBLISHED}, seul l'admin peut modifier, supprimer ou dépublier} (Retenu).
+    \item Revalidation automatique : toute modification par l'auteur d'un article publié le repasse automatiquement en \texttt{DRAFT}.
+    \item Édition libre par l'auteur sur l'article publié sans repasser par l'admin.
+\end{enumerate}
+\paragraph{Justification du choix :} La politique stricte garantit l'intégrité éditoriale de la plateforme. Un administrateur ayant validé une version précise d'un article, un utilisateur ne peut pas altérer le contenu sans contrôle éditorial. Si un article doit être modifié, l'administrateur conserve la possibilité de le modifier directement ou de le repasser en \texttt{DRAFT}.
+
+\subsection{Axe 5 : Endpoints de Workflow pour la Publication}
+\paragraph{Contexte :} Comment matérialiser l'action de validation/publication dans l'API REST.
+\paragraph{Options étudiées :}
+\begin{enumerate}
+    \item \textbf{Endpoints dédiés : \texttt{PATCH /api/articles/\{id\}/publish} et \texttt{/unpublish}} (Retenu).
+    \item Envoi d'un champ \texttt{\{"status": "PUBLISHED"\}} sur le \texttt{PATCH /api/articles/\{id\}} classique.
+    \item Workflow étendu avec motif de rejet.
+\end{enumerate}
+\paragraph{Justification du choix :} Définir des endpoints dédiés apporte une sémantique REST explicite et claire. Cela permet d'appliquer une sécurité déclarative stricte (\texttt{@PreAuthorize("hasRole('ADMIN')")}) sur ces actions spécifiques sans risquer qu'un utilisateur n'injecte un changement de statut lors d'une simple mise à jour de texte.
+
+\subsection{Axe 6 : Filtrage et Consultation des Articles}
+\paragraph{Contexte :} Les articles en \texttt{DRAFT} ne doivent être visibles que par leur auteur et par les administrateurs, tandis que les articles \texttt{PUBLISHED} sont publics.
+\paragraph{Options étudiées :}
+\begin{enumerate}
+    \item \textbf{Endpoint unique \texttt{GET /api/articles} avec filtrage sécurisé selon le profil connecté et pagination Spring Data} (Retenu).
+    \item Endpoints scindés (\texttt{/api/articles}, \texttt{/api/articles/me}, \texttt{/api/admin/articles}).
+    \item Endpoint public rejetant tout brouillon sauf avec paramètre explicite.
+\end{enumerate}
+\paragraph{Justification du choix :} Un endpoint unifié avec pagination et filtres optionnels (\texttt{?status=...}) centralise la logique de recherche. La couche de service et le repository appliquent automatiquement les prédicats de visibilité :
+\begin{itemize}
+    \item Visiteur anonyme : \texttt{status = 'PUBLISHED'}.
+    \item Utilisateur authentifié : \texttt{status = 'PUBLISHED' OR (status = 'DRAFT' AND author = currentUser)}.
+    \item Administrateur : accès à tous les articles, avec possibilité de filtrer par statut (par exemple pour afficher la file d'attente des brouillons à valider).
+\end{itemize}
+
+\subsection{Axe 7 : Stratégie de Suppression des Données}
+\paragraph{Contexte :} Déterminer le comportement du système lors de la suppression d'un article ou d'un commentaire.
+\paragraph{Options étudiées :}
+\begin{enumerate}
+    \item \textbf{Suppression physique (Hard delete) avec cascade SQL sur les commentaires} (Retenu).
+    \item Suppression logique (Soft delete) avec colonne \texttt{deleted\_at}.
+    \item Approche mixte (hard delete sur les brouillons, soft delete sur les articles publiés).
+\end{enumerate}
+\paragraph{Justification du choix :} Le modèle relationnel avec contrainte \texttt{ON DELETE CASCADE} sur la table \texttt{comments} garantit la propreté de la base de données sans laisser d'enregistrements orphelins. La suppression physique est simple, déterministe et conforme aux exigences de droit à l'oubli.
+
+\subsection{Axe 8 : Gestion du Schéma de Base de Données}
+\paragraph{Contexte :} Assurer la création et l'évolution du schéma de base de données PostgreSQL de manière reproductible entre les environnements de développement, de test et de conteneurisation.
+\paragraph{Options étudiées :}
+\begin{enumerate}
+    \item \textbf{Migrations SQL versionnées avec Flyway} (Retenu).
+    \item Génération automatique Hibernate DDL (\texttt{ddl-auto: update}).
+    \item Changelogs Liquibase.
+\end{enumerate}
+\paragraph{Justification du choix :} Flyway applique des scripts SQL natifs (\texttt{V1\_\_init\_schema.sql}) de façon prévisible et auditée. Contrairement à \texttt{ddl-auto: update} d'Hibernate (fortement déconseillé en environnement réel), Flyway assure un contrôle strict des types, index, contraintes de clés étrangères et cascades.
+
+\subsection{Axe 9 : Conteneurisation et Outillage de Documentation}
+\paragraph{Contexte :} Faciliter l'exécution du backend pour les développeurs et préparer l'intégration de la future application Angular.
+\paragraph{Options étudiées :}
+\begin{enumerate}
+    \item \textbf{Docker Compose complet (PostgreSQL + Spring Boot) \& Swagger UI (Springdoc OpenAPI)} (Retenu).
+    \item Docker Compose restreint à PostgreSQL avec exécution locale de Spring Boot.
+    \item Docker Compose sans interface Swagger UI.
+\end{enumerate}
+\paragraph{Justification du choix :} Le fichier \texttt{docker-compose.yml} permet d'initialiser tout le système en une seule commande (\texttt{docker compose up}). L'intégration de Swagger UI (\texttt{/swagger-ui/index.html}) avec configuration du schéma de sécurité \texttt{BearerAuth} permet d'interagir immédiatement avec l'API, de s'authentifier et d'éprouver la matrice des droits avant même le développement de l'interface Angular.
+
+---
+
+\section{Modèle de Données et Schéma Relationnel}
+
+Le schéma de la base de données est composé de trois tables principales :
+
+\begin{figure}[htbp]
+\centering
+\begin{center}
+\noindent\fbox{
+\begin{minipage}{0.95\textwidth}
+\vspace{0.2cm}
+\textbf{\large Structure des Tables SQL (Flyway)}
+\vspace{0.2cm}
+\hrule
+\vspace{0.3cm}
+\textbf{Table \texttt{users}}
+\begin{itemize}
+    \item \texttt{id} : \texttt{BIGSERIAL PRIMARY KEY}
+    \item \texttt{email} : \texttt{VARCHAR(150) NOT NULL UNIQUE}
+    \item \texttt{password} : \texttt{VARCHAR(255) NOT NULL} (hash BCrypt)
+    \item \texttt{role} : \texttt{VARCHAR(20) NOT NULL} (\texttt{ROLE\_USER}, \texttt{ROLE\_ADMIN})
+    \item \texttt{created\_at} : \texttt{TIMESTAMP WITH TIME ZONE NOT NULL}
+\end{itemize}
+
+\textbf{Table \texttt{articles}}
+\begin{itemize}
+    \item \texttt{id} : \texttt{BIGSERIAL PRIMARY KEY}
+    \item \texttt{title} : \texttt{VARCHAR(255) NOT NULL}
+    \item \texttt{content} : \texttt{TEXT NOT NULL}
+    \item \texttt{status} : \texttt{VARCHAR(20) NOT NULL} (\texttt{DRAFT}, \texttt{PUBLISHED})
+    \item \texttt{author\_id} : \texttt{BIGINT NOT NULL REFERENCES users(id)}
+    \item \texttt{created\_at} : \texttt{TIMESTAMP WITH TIME ZONE NOT NULL}
+    \item \texttt{updated\_at} : \texttt{TIMESTAMP WITH TIME ZONE NOT NULL}
+\end{itemize}
+
+\textbf{Table \texttt{comments}}
+\begin{itemize}
+    \item \texttt{id} : \texttt{BIGSERIAL PRIMARY KEY}
+    \item \texttt{content} : \texttt{TEXT NOT NULL}
+    \item \texttt{article\_id} : \texttt{BIGINT NOT NULL REFERENCES articles(id) ON DELETE CASCADE}
+    \item \texttt{author\_id} : \texttt{BIGINT NOT NULL REFERENCES users(id)}
+    \item \texttt{created\_at} : \texttt{TIMESTAMP WITH TIME ZONE NOT NULL}
+    \item \texttt{updated\_at} : \texttt{TIMESTAMP WITH TIME ZONE NOT NULL}
+\end{itemize}
+\vspace{0.2cm}
+\end{minipage}
+}
+\end{center}
+\end{figure}
+
+---
+
+\section{Matrice de Sécurité et Contrôle d'Accès}
+
+La matrice ci-dessous résume les permissions implémentées dans le backend :
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Matrice des Droits d'Accès de l'API}
+\label{tab:security-matrix}
+\begin{tabular}{@{}p{6.8cm}ccc@{}}
+\toprule
+\textbf{Opération / Ressource} & \textbf{Anonyme} & \textbf{Utilisateur (USER)} & \textbf{Administrateur (ADMIN)} \\
+\midrule
+Inscription (\texttt{/api/auth/register}) & \checkmark & \checkmark & \checkmark \\
+Connexion (\texttt{/api/auth/login}) & \checkmark & \checkmark & \checkmark \\
+\midrule
+Voir articles \texttt{PUBLISHED} & \checkmark & \checkmark & \checkmark \\
+Voir articles \texttt{DRAFT} & $\times$ & Auteur uniquement & Tous les auteurs \\
+Créer un article & $\times$ & \checkmark (forcé en \texttt{DRAFT}) & \checkmark (forcé en \texttt{DRAFT}) \\
+Modifier article en \texttt{DRAFT} & $\times$ & Auteur uniquement & \checkmark \\
+Supprimer article en \texttt{DRAFT} & $\times$ & Auteur uniquement & \checkmark \\
+Modifier article \texttt{PUBLISHED} & $\times$ & $\times$ & \checkmark \\
+Supprimer article \texttt{PUBLISHED} & $\times$ & $\times$ & \checkmark \\
+Publier (\texttt{DRAFT} $\to$ \texttt{PUBLISHED}) & $\times$ & $\times$ & \checkmark \\
+Dépublier (\texttt{PUBLISHED} $\to$ \texttt{DRAFT}) & $\times$ & $\times$ & \checkmark \\
+\midrule
+Lire les commentaires d'un article & \checkmark & \checkmark & \checkmark \\
+Commenter un article \texttt{PUBLISHED} & $\times$ & \checkmark & \checkmark \\
+Commenter un article \texttt{DRAFT} & $\times$ & $\times$ & $\times$ \\
+Modifier un commentaire & $\times$ & Auteur uniquement & Auteur uniquement \\
+Supprimer un commentaire & $\times$ & Auteur uniquement & \checkmark (Modération totale) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+---
+
+\section{Architecture Logicielle Spring Boot}
+
+L'application respecte les principes de l'architecture en couches (*Layered Architecture*) :
+\begin{enumerate}
+    \item \textbf{Couche Présentation (Controllers)} : Définition des endpoints REST, validation des requêtes DTOs via Bean Validation (\texttt{@Valid}, \texttt{@NotBlank}, \texttt{@Email}), sérialisation JSON et documentation OpenAPI.
+    \item \textbf{Couche Sécurité \& Filtres} : \texttt{JwtAuthenticationFilter} interceptant les requêtes, déchiffrant le JWT via \texttt{JwtService} et alimentant le \texttt{SecurityContextHolder}. Les évaluateurs d'autorisation personnalisés (\texttt{ArticleSecurity}, \texttt{CommentSecurity}) appliquent les règles de propriété des ressources.
+    \item \textbf{Couche Métier (Services)} : Implémentation des règles fonctionnelles, vérification de l'intégrité (statut \texttt{DRAFT} vs \texttt{PUBLISHED}) et gestion transactionnelle (\texttt{@Transactional}).
+    \item \textbf{Couche Persistance (Repositories)} : Interfaces Spring Data JPA exploitant des requêtes JPQL sécurisées pour le filtrage contextuel et la pagination.
+    \item \textbf{Couche Infrastructure (Flyway / Docker)} : Initialisation du schéma SQL et conteneurisation reproductible.
+\end{enumerate}
+
+---
+
+\section{Conclusion et Prochaines Étapes}
+
+Ce backend fournit un socle fiable, sécurisé et totalement testé. L'exhaustivité de la matrice des droits et la clarté des contrats d'API exposés via Swagger UI permettront d'aborder la phase suivante (le développement du client Angular) avec un niveau élevé de prédictibilité et de confort d'intégration.
+Ce rapport sera enrichi au fil des itérations futures du projet.
+
+\end{document}
