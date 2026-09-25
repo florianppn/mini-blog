@@ -19,7 +19,7 @@ services:
 
   backend:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
     container_name: miniblog-backend
     restart: unless-stopped

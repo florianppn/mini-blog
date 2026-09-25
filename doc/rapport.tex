@@ -260,20 +260,64 @@ Supprimer un commentaire & $\times$ & Auteur uniquement & \checkmark (Modératio
 
 \section{Architecture Logicielle Spring Boot}
 
-L'application respecte les principes de l'architecture en couches (*Layered Architecture*) :
+L'application respecte les principes de l'architecture en couches (*Layered Architecture*) et est isolée dans le dossier \texttt{backend/} :
 \begin{enumerate}
     \item \textbf{Couche Présentation (Controllers)} : Définition des endpoints REST, validation des requêtes DTOs via Bean Validation (\texttt{@Valid}, \texttt{@NotBlank}, \texttt{@Email}), sérialisation JSON et documentation OpenAPI.
     \item \textbf{Couche Sécurité \& Filtres} : \texttt{JwtAuthenticationFilter} interceptant les requêtes, déchiffrant le JWT via \texttt{JwtService} et alimentant le \texttt{SecurityContextHolder}. Les évaluateurs d'autorisation personnalisés (\texttt{ArticleSecurity}, \texttt{CommentSecurity}) appliquent les règles de propriété des ressources.
     \item \textbf{Couche Métier (Services)} : Implémentation des règles fonctionnelles, vérification de l'intégrité (statut \texttt{DRAFT} vs \texttt{PUBLISHED}) et gestion transactionnelle (\texttt{@Transactional}).
     \item \textbf{Couche Persistance (Repositories)} : Interfaces Spring Data JPA exploitant des requêtes JPQL sécurisées pour le filtrage contextuel et la pagination.
-    \item \textbf{Couche Infrastructure (Flyway / Docker)} : Initialisation du schéma SQL et conteneurisation reproductible.
+    \item \textbf{Couche Infrastructure (Flyway / Docker)} : Initialisation du schéma SQL et conteneurisation reproductible via \texttt{docker-compose.yml}.
 \end{enumerate}
+
+---
+
+\section{Stratégie de Test et Validation Automatisée}
+
+Afin de garantir la robustesse des règles de gestion et la stricte étanchéité de la sécurité au niveau ressource, une suite de 18 tests automatisés a été implémentée avec \textbf{JUnit 5}, \textbf{Mockito} et \textbf{Spring Boot Test / MockMvc}.
+
+\subsection{Tableau Récapitulatif des Tests Unitaires et d'Intégration}
+
+Le tableau \ref{tab:test-suite} recense l'ensemble des scénarios de test exécutés avec succès lors de la phase de validation.
+
+\begin{table}[htbp]
+\centering
+\footnotesize
+\caption{Suite de Tests Automatisés du Backend Mini-Blog (18 tests, 100\% succès)}
+\label{tab:test-suite}
+\begin{tabular}{@{}p{3.3cm}p{4.1cm}p{6.5cm}c@{}}
+\toprule
+\textbf{Classe de Test} & \textbf{Méthode / Scénario} & \textbf{Règle Métier Validée} & \textbf{Statut} \\
+\midrule
+\texttt{AuthServiceTest} & \texttt{register\_Success} & Création d'un compte \texttt{USER}, hash BCrypt et token JWT & \textbf{SUCCÈS} \\
+\texttt{AuthServiceTest} & \texttt{register\_EmailExists} & Rejet si email déjà pris (\texttt{BadRequestException}) & \textbf{SUCCÈS} \\
+\texttt{AuthServiceTest} & \texttt{login\_Success} & Authentification valide et délivrance de token Bearer & \textbf{SUCCÈS} \\
+\midrule
+\texttt{ArticleServiceTest} & \texttt{createArticle\_Draft} & Création systématiquement forcée au statut \texttt{DRAFT} & \textbf{SUCCÈS} \\
+\texttt{ArticleServiceTest} & \texttt{update\_AuthorDraft} & L'auteur peut modifier son article tant qu'il est en \texttt{DRAFT} & \textbf{SUCCÈS} \\
+\texttt{ArticleServiceTest} & \texttt{update\_AuthorPublished} & \textbf{Politique stricte} : auteur interdit de modifier un article \texttt{PUBLISHED} & \textbf{SUCCÈS} \\
+\texttt{ArticleServiceTest} & \texttt{update\_OtherDraft} & Interdiction de modifier le brouillon d'un tiers (\texttt{AccessDenied}) & \textbf{SUCCÈS} \\
+\texttt{ArticleServiceTest} & \texttt{update\_AdminPublished} & L'administrateur peut modifier un article \texttt{PUBLISHED} & \textbf{SUCCÈS} \\
+\texttt{ArticleServiceTest} & \texttt{publishArticle} & Passage de \texttt{DRAFT} à \texttt{PUBLISHED} & \textbf{SUCCÈS} \\
+\texttt{ArticleServiceTest} & \texttt{unpublishArticle} & Dépublication de \texttt{PUBLISHED} à \texttt{DRAFT} & \textbf{SUCCÈS} \\
+\midrule
+\texttt{CommentServiceTest} & \texttt{createComment\_Published} & Ajout de commentaire autorisé sur un article \texttt{PUBLISHED} & \textbf{SUCCÈS} \\
+\texttt{CommentServiceTest} & \texttt{createComment\_Draft} & Interdiction formelle de commenter un \texttt{DRAFT} (400) & \textbf{SUCCÈS} \\
+\texttt{CommentServiceTest} & \texttt{update\_Author} & L'auteur d'un commentaire peut corriger son contenu & \textbf{SUCCÈS} \\
+\texttt{CommentServiceTest} & \texttt{update\_Other} & Interdiction de modifier le commentaire d'un tiers & \textbf{SUCCÈS} \\
+\texttt{CommentServiceTest} & \texttt{delete\_Author} & L'auteur peut supprimer son propre commentaire & \textbf{SUCCÈS} \\
+\texttt{CommentServiceTest} & \texttt{delete\_Admin} & L'administrateur peut modérer n'importe quel commentaire & \textbf{SUCCÈS} \\
+\texttt{CommentServiceTest} & \texttt{delete\_Other} & Refus de suppression pour un utilisateur non auteur/non admin & \textbf{SUCCÈS} \\
+\midrule
+\texttt{SecurityIntegration} & \texttt{fullSecurityLifecycle} & \textbf{Test E2E MockMvc} (15 assertions en chaîne) : enregistrement, isolation des brouillons, publication admin, blocage auteur post-publication, commentaires et modération & \textbf{SUCCÈS} \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 ---
 
 \section{Conclusion et Prochaines Étapes}
 
-Ce backend fournit un socle fiable, sécurisé et totalement testé. L'exhaustivité de la matrice des droits et la clarté des contrats d'API exposés via Swagger UI permettront d'aborder la phase suivante (le développement du client Angular) avec un niveau élevé de prédictibilité et de confort d'intégration.
-Ce rapport sera enrichi au fil des itérations futures du projet.
+Ce backend fournit un socle fiable, sécurisé et totalement testé, proprement isolé dans le répertoire \texttt{backend/}. L'exhaustivité de la matrice des droits et la clarté des contrats d'API exposés via Swagger UI permettront d'aborder la phase suivante (le développement du client Angular dans un dossier dédié \texttt{frontend/}) avec un niveau élevé de prédictibilité et de confort d'intégration.
+Ce rapport continuera d'évoluer au fil des développements.
 
 \end{document}
