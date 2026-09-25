@@ -53,9 +53,9 @@ npm start
 
 ---
 
-## Documentation & Rapport d'Architecture
+## Documentation
 
-Le rapport complet justifiant l'ensemble des choix techniques, la matrice de sécurité et les détails d'implémentation est disponible dans le dossier `doc/` :
+Le rapport complet est disponible dans le dossier `doc/` :
 
 - **Rapport PDF** : [`doc/rapport.pdf`](doc/rapport.pdf)
 - **Source LaTeX** : [`doc/rapport.tex`](doc/rapport.tex)
