@@ -104,6 +104,10 @@ public class ArticleService {
     public ArticleResponse createArticle(ArticleCreateRequest request, String userEmail) {
         User currentUser = findUserOrThrow(userEmail);
 
+        if (currentUser.getRole() == Role.ROLE_ADMIN) {
+            throw new AccessDeniedException("Les administrateurs ne peuvent pas créer d'articles. Ce rôle est exclusivement dédié à la modération.");
+        }
+
         Article article = Article.builder()
                 .title(request.getTitle().trim())
                 .content(request.getContent().trim())
@@ -120,16 +124,14 @@ public class ArticleService {
         Article article = findArticleOrThrow(id);
         User currentUser = findUserOrThrow(userEmail);
 
-        if (currentUser.getRole() != Role.ROLE_ADMIN) {
-            if (!article.getAuthor().getId().equals(currentUser.getId())) {
-                throw new AccessDeniedException("Vous n'êtes pas l'auteur de cet article");
-            }
-            if (article.getStatus() == ArticleStatus.PENDING_REVIEW) {
-                throw new AccessDeniedException("Cet article est en attente de validation. Veuillez annuler la soumission pour pouvoir le modifier.");
-            }
-            if (article.getStatus() != ArticleStatus.DRAFT) {
-                throw new AccessDeniedException("Les articles publiés ne peuvent plus être modifiés par leur auteur (réservé à l'administrateur)");
-            }
+        if (!article.getAuthor().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("Seul l'auteur peut modifier son article");
+        }
+        if (article.getStatus() == ArticleStatus.PENDING_REVIEW) {
+            throw new AccessDeniedException("Cet article est en attente de validation. Veuillez annuler la soumission pour pouvoir le modifier.");
+        }
+        if (article.getStatus() != ArticleStatus.DRAFT) {
+            throw new AccessDeniedException("Les articles publiés ne peuvent plus être modifiés.");
         }
 
         article.setTitle(request.getTitle().trim());

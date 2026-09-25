@@ -336,14 +336,7 @@ import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
             </div>
 
             <!-- Modal Footer -->
-            <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
-              <a [routerLink]="['/articles', previewArticle()!.id]" (click)="closePreview()" class="text-xs text-indigo-600 hover:underline font-semibold flex items-center gap-1">
-                Accéder à la page complète
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </a>
-
+            <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end">
               <div class="flex items-center gap-2">
                 @if (previewArticle()!.status === 'PENDING_REVIEW') {
                   <button

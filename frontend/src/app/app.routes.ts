@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
+import { noAdminGuard } from './core/guards/no-admin.guard';
 import { ArticleListComponent } from './features/articles/article-list/article-list.component';
 import { ArticleDetailComponent } from './features/articles/article-detail/article-detail.component';
 import { ArticleFormComponent } from './features/articles/article-form/article-form.component';
@@ -11,11 +12,11 @@ import { RegisterComponent } from './features/auth/register/register.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'articles', pathMatch: 'full' },
-  { path: 'articles', component: ArticleListComponent },
-  { path: 'articles/nouveau', component: ArticleFormComponent, canActivate: [authGuard] },
-  { path: 'articles/:id', component: ArticleDetailComponent },
-  { path: 'articles/:id/editer', component: ArticleFormComponent, canActivate: [authGuard] },
-  { path: 'mes-brouillons', component: MyDraftsComponent, canActivate: [authGuard] },
+  { path: 'articles', component: ArticleListComponent, canActivate: [noAdminGuard] },
+  { path: 'articles/nouveau', component: ArticleFormComponent, canActivate: [authGuard, noAdminGuard] },
+  { path: 'articles/:id', component: ArticleDetailComponent, canActivate: [noAdminGuard] },
+  { path: 'articles/:id/editer', component: ArticleFormComponent, canActivate: [authGuard, noAdminGuard] },
+  { path: 'mes-brouillons', component: MyDraftsComponent, canActivate: [authGuard, noAdminGuard] },
   { path: 'admin', component: AdminDashboardComponent, canActivate: [adminGuard] },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },

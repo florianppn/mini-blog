@@ -14,7 +14,7 @@ import { AuthService } from '../../../core/services/auth.service';
           
           <!-- Logo & Brand -->
           <div class="flex items-center gap-8">
-            <a routerLink="/" class="flex items-center gap-2.5 group">
+            <a [routerLink]="authService.isAdmin() ? '/admin' : '/'" class="flex items-center gap-2.5 group">
               <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
@@ -27,20 +27,21 @@ import { AuthService } from '../../../core/services/auth.service';
 
             <!-- Navigation Links -->
             <nav class="hidden md:flex items-center gap-1">
-              <a
-                routerLink="/articles"
-                routerLinkActive="bg-indigo-50 text-indigo-700 font-semibold"
-                [routerLinkActiveOptions]="{ exact: true }"
-                class="px-3.5 py-2 rounded-lg text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
-                Articles
-              </a>
+              @if (!authService.isAdmin()) {
+                <a
+                  routerLink="/articles"
+                  routerLinkActive="bg-indigo-50 text-indigo-700 font-semibold"
+                  [routerLinkActiveOptions]="{ exact: true }"
+                  class="px-3.5 py-2 rounded-lg text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+                  Articles
+                </a>
+              }
 
-              @if (authService.isAuthenticated()) {
+              @if (authService.isAuthenticated() && !authService.isAdmin()) {
                 <a
                   routerLink="/mes-brouillons"
                   routerLinkActive="bg-indigo-50 text-indigo-700 font-semibold"
-                  class="px-3.5 py-2 rounded-lg text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors flex items-center gap-1.5">
-                  <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                  class="px-3.5 py-2 rounded-lg text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
                   Mes brouillons
                 </a>
               }
@@ -62,14 +63,16 @@ import { AuthService } from '../../../core/services/auth.service';
           <!-- User actions & profile -->
           <div class="flex items-center gap-3">
             @if (authService.isAuthenticated()) {
-              <a
-                routerLink="/articles/nouveau"
-                class="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-sm font-semibold rounded-xl transition shadow-sm hover:shadow-indigo-500/25">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Écrire
-              </a>
+              @if (!authService.isAdmin()) {
+                <a
+                  routerLink="/articles/nouveau"
+                  class="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-sm font-semibold rounded-xl transition shadow-sm hover:shadow-indigo-500/25">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                  Écrire
+                </a>
+              }
 
               <div class="flex items-center gap-3 pl-3 border-l border-slate-200">
                 <div class="text-right hidden sm:block">

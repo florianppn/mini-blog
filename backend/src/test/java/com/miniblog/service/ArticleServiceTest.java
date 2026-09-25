@@ -177,16 +177,22 @@ class ArticleServiceTest {
     }
 
     @Test
-    void updateArticle_AdminCanUpdatePublishedArticle() {
+    void createArticle_AdminCannotCreateArticle_ThrowsAccessDenied() {
+        ArticleCreateRequest req = new ArticleCreateRequest("Admin Titre", "Admin Contenu");
+        when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(admin));
+
+        assertThrows(AccessDeniedException.class, () -> articleService.createArticle(req, "admin@example.com"));
+        verify(articleRepository, never()).save(any());
+    }
+
+    @Test
+    void updateArticle_AdminCannotUpdatePublishedArticle_ThrowsAccessDenied() {
         ArticleUpdateRequest req = new ArticleUpdateRequest("Admin Edit", "Admin Content");
         when(articleRepository.findById(20L)).thenReturn(Optional.of(publishedArticle));
         when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(admin));
-        when(articleRepository.save(any(Article.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        ArticleResponse res = articleService.updateArticle(20L, req, "admin@example.com");
-
-        assertNotNull(res);
-        assertEquals("Admin Edit", res.getTitle());
+        assertThrows(AccessDeniedException.class, () -> articleService.updateArticle(20L, req, "admin@example.com"));
+        verify(articleRepository, never()).save(any());
     }
 
     @Test

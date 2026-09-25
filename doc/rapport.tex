@@ -363,9 +363,32 @@ Sécurité globale & Intégration & Scénario complet en 17 étapes (isolation b
 L'application couvre l'ensemble des parcours fonctionnels d'un blog collaboratif :
 \begin{itemize}
     \item \textbf{Visiteur anonyme} : Consulte le flux des articles publiés sur \texttt{/articles}, effectue des recherches textuelles, lit les détails d'un article et ses commentaires. Il peut créer un compte sur \texttt{/register} ou s'identifier sur \texttt{/login}.
-    \item \textbf{Auteur authentifié} (\texttt{ROLE\_USER}) : Rédige des articles sur \texttt{/articles/nouveau} (créés en \texttt{DRAFT}). Il dispose de son espace \texttt{/mes-brouillons} pour retrouver ses articles en cours, les modifier et les supprimer. Il peut commenter les articles publiés.
-    \item \textbf{Administrateur} (\texttt{ROLE\_ADMIN}) : Accède au dashboard de supervision \texttt{/admin}. Il visualise l'ensemble des articles du site, filtre par statut, ouvre la prévisualisation modale, et utilise les boutons d'action pour publier un brouillon ou dépublier un article. Il bénéficie également d'un pouvoir de modération absolue sur tous les commentaires.
+    \item \textbf{Auteur authentifié} (\texttt{ROLE\_USER}) : Rédige des articles sur \texttt{/articles/nouveau} (créés au statut initial \texttt{DRAFT}). Il dispose de son espace \texttt{/mes-brouillons} pour retrouver ses articles en cours, les modifier, les supprimer ou les soumettre en validation (\texttt{PENDING\_REVIEW}). Il peut commenter les articles publiés.
+    \item \textbf{Administrateur} (\texttt{ROLE\_ADMIN}) : Dédié exclusivement à l'espace de gestion et de validation \texttt{/admin}. Par principe de séparation stricte des responsabilités et respect de l'intégrité éditoriale, l'administrateur n'intervient pas comme lecteur ordinaire, ne rédige pas d'articles et ne retouche pas le texte des auteurs. Son interface et ses droits sont concentrés sur la revue de conformité : prévisualisation modale en lecture seule, validation et publication des articles soumis (\texttt{PENDING\_REVIEW}), renvoi en brouillon (\texttt{DRAFT}), dépublication ou suppression définitive. Toute tentative d'accès aux routes publiques ou éditoriales le redirige automatiquement vers son tableau de bord.
 \end{itemize}
+
+\begin{table}[h!]
+\centering
+\small
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Action / Ressource} & \textbf{Visiteur} & \textbf{Auteur (\texttt{ROLE\_USER})} & \textbf{Admin (\texttt{ROLE\_ADMIN})} \\
+\hline
+Consulter les articles publiés & $\checkmark$ & $\checkmark$ & $\times$ (Redirection \texttt{/admin}) \\
+Rechercher des articles & $\checkmark$ & $\checkmark$ & $\times$ \\
+Commenter un article publié & $\times$ & $\checkmark$ & $\times$ (Réservé aux lecteurs) \\
+Rédiger un article (\texttt{POST}) & $\times$ & $\checkmark$ (\texttt{DRAFT}) & $\times$ (403 Forbidden) \\
+Modifier le texte (\texttt{PUT}) & $\times$ & $\checkmark$ (Auteur si \texttt{DRAFT}) & $\times$ (403 Forbidden) \\
+Soumettre à validation & $\times$ & $\checkmark$ (Auteur seul) & $\times$ \\
+Valider et publier & $\times$ & $\times$ & $\checkmark$ (\texttt{/admin}) \\
+Renvoyer en brouillon & $\times$ & $\times$ & $\checkmark$ (\texttt{/admin}) \\
+Dépublier un article & $\times$ & $\times$ & $\checkmark$ (\texttt{/admin}) \\
+Supprimer un article & $\times$ & $\checkmark$ (Ses brouillons) & $\checkmark$ (\texttt{/admin}) \\
+\hline
+\end{tabular}
+\caption{Matrice de contrôle d'accès basée sur les rôles (RBAC)}
+\label{tab:rbac}
+\end{table}
 
 \newpage
 
@@ -396,7 +419,7 @@ L'ensemble de la plateforme est orchestré via un fichier \texttt{docker-compose
 La plateforme \textbf{Mini-Blog} dispose d'une implémentation fullstack complète, opérationnelle et rigoureusement documentée :
 \begin{itemize}
     \item \textbf{Excellence backend} : Architecture Spring Boot 3 en Java 21, persistence PostgreSQL 16 avec migrations Flyway, hachage BCrypt, jetons JJWT stateless et sécurité granulaire par ressource.
-    \item \textbf{Couverture de tests} : Suite automatisée de 18 tests unitaires et d'intégration validant 100\% de la matrice des droits et des règles d'étanchéité éditoriale.
+    \item \textbf{Couverture de tests} : Suite automatisée de 24 tests unitaires et d'intégration validant 100\% de la matrice des droits et des règles d'étanchéité éditoriale.
     \item \textbf{Expérience frontend} : Application Angular 18 moderne, performante et réactive exploitant les Signals, un design system moderne avec Tailwind CSS, et une tolérance aux pannes réseau.
     \item \textbf{Déploiement reproductible} : Orchestration conteneurisée via Docker Compose, isolation étanche des secrets d'environnement via \texttt{.env.example}, et reverse-proxying Nginx sur le port conventionnel \texttt{4200}.
 \end{itemize}

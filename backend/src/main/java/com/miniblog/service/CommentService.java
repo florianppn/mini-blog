@@ -35,6 +35,9 @@ public class CommentService {
     @Transactional
     public CommentResponse createComment(Long articleId, CommentCreateRequest request, String userEmail) {
         User currentUser = findUserOrThrow(userEmail);
+        if (currentUser.getRole() == Role.ROLE_ADMIN) {
+            throw new AccessDeniedException("Les administrateurs ne peuvent pas poster de commentaires.");
+        }
         Article article = findArticleOrThrow(articleId);
 
         // Règle : Seuls les articles PUBLISHED peuvent recevoir des commentaires
