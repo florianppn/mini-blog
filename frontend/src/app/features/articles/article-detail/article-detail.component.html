@@ -22,17 +22,12 @@
       <div class="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-zinc-100">
         <div class="flex items-center gap-3">
           @if (isAuthorOrAdmin()) {
-            @if (article()!.status === 'PUBLISHED') {
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/70">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                Publié
-              </span>
-            } @else if (article()!.status === 'PENDING_REVIEW') {
+            @if (article()!.status === 'PENDING_REVIEW') {
               <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200/70">
                 <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                 En attente de validation
               </span>
-            } @else {
+            } @else if (article()!.status === 'DRAFT') {
               <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-zinc-100 text-zinc-600 border border-zinc-200">
                 <span class="w-1.5 h-1.5 rounded-full bg-zinc-400"></span>
                 Brouillon
