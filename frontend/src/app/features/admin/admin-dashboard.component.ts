@@ -3,8 +3,10 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ArticleService } from '../../core/services/article.service';
+import { UserService } from '../../core/services/user.service';
 import { ConfirmDialogService } from '../../core/services/confirm-dialog.service';
 import { Article, ArticleStatus } from '../../core/models/article.model';
+import { User, Role } from '../../core/models/user.model';
 import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
 
 @Component({
@@ -15,12 +17,20 @@ import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
 })
 export class AdminDashboardComponent implements OnInit {
   private articleService = inject(ArticleService);
+  private userService = inject(UserService);
   private confirmDialog = inject(ConfirmDialogService);
+
+  activeSection = signal<'articles' | 'users'>('articles');
 
   articles = signal<Article[]>([]);
   totalArticlesCount = signal<number>(0);
   pendingCount = signal<number>(0);
   publishedCount = signal<number>(0);
+
+  users = signal<User[]>([]);
+  usersLoading = signal<boolean>(false);
+  userActionLoadingId = signal<number | null>(null);
+  userSearchQuery = '';
 
   currentPage = signal<number>(0);
   totalPages = signal<number>(1);
@@ -36,6 +46,7 @@ export class AdminDashboardComponent implements OnInit {
   ngOnInit(): void {
     this.loadPage(0);
     this.refreshMetrics();
+    this.loadUsers();
   }
 
   refreshMetrics(): void {
@@ -184,4 +195,82 @@ export class AdminDashboardComponent implements OnInit {
   private updateItemInList(updated: Article): void {
     this.articles.update(list => list.map(a => a.id === updated.id ? updated : a));
   }
+
+  loadUsers(): void {
+    this.usersLoading.set(true);
+    this.userService.getUsers().subscribe({
+      next: data => {
+        this.users.set(data);
+        this.usersLoading.set(false);
+      },
+      error: () => {
+        this.usersLoading.set(false);
+      }
+    });
+  }
+
+  countModerators(): number {
+    return this.users().filter(u => u.role === 'ROLE_MODERATOR').length;
+  }
+
+  countAuthors(): number {
+    return this.users().filter(u => u.role === 'ROLE_USER').length;
+  }
+
+  filteredUsers(): User[] {
+    let list = this.users();
+    if (this.userSearchQuery.trim()) {
+      const q = this.userSearchQuery.toLowerCase();
+      list = list.filter(u =>
+        u.email.toLowerCase().includes(q) ||
+        u.role.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }
+
+  isUserActionLoading(id: number): boolean {
+    return this.userActionLoadingId() === id;
+  }
+
+  async promoteToModerator(user: User): Promise<void> {
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Promouvoir en Modérateur',
+      message: `Souhaitez-vous accorder les privilèges de modération à l'utilisateur ${user.email} ? Il pourra supprimer n'importe quel commentaire sur l'ensemble de la plateforme tout en conservant ses droits d'auteur.`,
+      confirmText: 'Promouvoir Modérateur',
+      variant: 'info'
+    });
+    if (!confirmed) return;
+
+    this.userActionLoadingId.set(user.id);
+    this.userService.updateUserRole(user.id, 'ROLE_MODERATOR').subscribe({
+      next: updated => {
+        this.actionMessage.set(`L'utilisateur ${user.email} est désormais Modérateur.`);
+        this.users.update(list => list.map(u => u.id === updated.id ? updated : u));
+        this.userActionLoadingId.set(null);
+      },
+      error: () => this.userActionLoadingId.set(null)
+    });
+  }
+
+  async demoteToAuthor(user: User): Promise<void> {
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Rétrograder en Auteur',
+      message: `Êtes-vous sûr de vouloir retirer les privilèges de modérateur de l'utilisateur ${user.email} ? Il redeviendra un simple Auteur sans droit de modération sur les commentaires tiers.`,
+      confirmText: 'Rétrograder en Auteur',
+      variant: 'warning'
+    });
+    if (!confirmed) return;
+
+    this.userActionLoadingId.set(user.id);
+    this.userService.updateUserRole(user.id, 'ROLE_USER').subscribe({
+      next: updated => {
+        this.actionMessage.set(`L'utilisateur ${user.email} a été rétrogradé au rôle d'Auteur.`);
+        this.users.update(list => list.map(u => u.id === updated.id ? updated : u));
+        this.userActionLoadingId.set(null);
+      },
+      error: () => this.userActionLoadingId.set(null)
+    });
+  }
 }
+

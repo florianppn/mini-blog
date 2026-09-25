@@ -93,4 +93,22 @@ class AuthServiceTest {
         assertEquals("jwt.token.mock", res.getToken());
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
     }
+
+    @Test
+    void getCurrentUser_Success() {
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(sampleUser));
+
+        com.miniblog.dto.UserResponse res = authService.getCurrentUser("test@example.com");
+
+        assertNotNull(res);
+        assertEquals("test@example.com", res.getEmail());
+        assertEquals(Role.ROLE_USER, res.getRole());
+    }
+
+    @Test
+    void getCurrentUser_NotFound_ThrowsException() {
+        when(userRepository.findByEmail("unknown@example.com")).thenReturn(Optional.empty());
+
+        assertThrows(BadRequestException.class, () -> authService.getCurrentUser("unknown@example.com"));
+    }
 }

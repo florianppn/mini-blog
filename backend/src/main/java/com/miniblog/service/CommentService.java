@@ -91,8 +91,11 @@ public class CommentService {
         Comment comment = findCommentOrThrow(commentId);
         User currentUser = findUserOrThrow(userEmail);
 
-        // L'auteur du commentaire OU un administrateur peut supprimer le commentaire
-        if (currentUser.getRole() != Role.ROLE_ADMIN && !comment.getAuthor().getId().equals(currentUser.getId())) {
+        // L'auteur du commentaire, un modérateur OU un administrateur peut supprimer le commentaire
+        boolean isAuthor = comment.getAuthor().getId().equals(currentUser.getId());
+        boolean isModeratorOrAdmin = currentUser.getRole() == Role.ROLE_MODERATOR || currentUser.getRole() == Role.ROLE_ADMIN;
+
+        if (!isAuthor && !isModeratorOrAdmin) {
             throw new AccessDeniedException("Vous n'êtes pas autorisé à supprimer ce commentaire");
         }
 

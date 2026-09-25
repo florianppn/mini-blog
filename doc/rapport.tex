@@ -199,6 +199,8 @@ Le projet \textbf{Mini-Blog} a pour objectif d'offrir une plateforme moderne, pe
 \end{itemize}
 \paragraph{Pourquoi :} Docker Compose permet de réunir la base de données, le backend et le frontend dans des boîtes virtuelles isolées (conteneurs) et de tout lancer avec une seule commande (\texttt{docker compose up}). Par ailleurs, pour garantir la sécurité, aucun mot de passe n'est écrit « en dur » dans le code : ils sont placés dans un fichier local (\texttt{.env}) rigoureusement ignoré par Git, ce qui évite toute fuite accidentelle sur Internet tout en proposant un modèle prêt à l'emploi (\texttt{.env.example}).
 
+\newpage
+
 \subsection{Modèle de données et schéma relationnel}
 
 Le schéma de la base de données est composé de trois tables principales :
@@ -236,7 +238,7 @@ Le schéma de la base de données est composé de trois tables principales :
 \end{figure}
 
 \begin{itemize}
-    \item \textbf{\texttt{users}} : Stocke l'adresse email (contrainte d'unicité), le mot de passe haché par l'algorithme BCrypt, et le rôle (\texttt{ROLE\_USER} ou \texttt{ROLE\_ADMIN}).
+    \item \textbf{\texttt{users}} : Stocke l'adresse email (contrainte d'unicité), le mot de passe haché par l'algorithme BCrypt, et le rôle (\texttt{ROLE\_USER}, \texttt{ROLE\_MODERATOR} ou \texttt{ROLE\_ADMIN}).
     \item \textbf{\texttt{articles}} : Stocke le titre, le contenu rédigé en Markdown, le statut (\texttt{DRAFT}, \texttt{PENDING\_REVIEW} ou \texttt{PUBLISHED}), la clé étrangère vers l'auteur (\texttt{author\_id}), et les timestamps de création et mise à jour.
     \item \textbf{\texttt{comments}} : Stocke le texte du commentaire et les clés étrangères (\texttt{article\_id}, \texttt{author\_id}), avec suppression en cascade (\texttt{ON DELETE CASCADE}).
 \end{itemize}
@@ -249,30 +251,33 @@ La sécurité combine deux niveaux complémentaires : le contrôle d'accès bas�
 
 \begin{table}[htbp]
 \centering
-\small
+\scriptsize
 \renewcommand{\arraystretch}{1.35}
 \caption{Matrice synthétique des droits d'accès par rôle}
 \label{tab:security-matrix}
 \setlength{\arrayrulewidth}{0.4pt}
-\begin{tabularx}{\textwidth}{|>{\bfseries}p{3.2cm}|p{2.6cm}|X|X|}
+\begin{tabularx}{\textwidth}{|>{\bfseries}p{2.6cm}|p{1.9cm}|X|X|X|}
 \hline
 \rowcolor{gray!75}
-\color{white}\textbf{Opération / ressource} & \color{white}\textbf{Visiteur anonyme} & \color{white}\textbf{Auteur connecté} & \color{white}\textbf{Administrateur} \\
+\color{white}\textbf{Opération / ressource} & \color{white}\textbf{Visiteur} & \color{white}\textbf{Auteur} & \color{white}\textbf{Modérateur} & \color{white}\textbf{Admin} \\
 \hline
 \rowcolor{gray!10}
-Authentification & Inscription / Connexion & Session active & Session active \\
+Authentification & Inscription / Login & Session active & Session active & Session active \\
 \hline
-Articles publiés & Consultation libre & Consultation libre & Modération \& dépublication \\
-\hline
-\rowcolor{gray!10}
-Brouillons (\texttt{DRAFT}) & Inaccessibles & Édition, suppression \& soumission & Inaccessibles (privés à l'auteur) \\
-\hline
-En attente (\texttt{PENDING}) & Inaccessibles & Consultation \& annulation de soumission & Examen, validation \& renvoi en brouillon \\
+Articles publiés & Consultation libre & Consultation libre & Consultation libre & Modération \& dépublication \\
 \hline
 \rowcolor{gray!10}
-Commentaires sur publiés & Lecture seule & Ajout, édition \& suppression de ses écrits & Ajout \& modération de tous les commentaires \\
+Brouillons (\texttt{DRAFT}) & Inaccessibles & Édition \& suppression de ses écrits & Édition \& suppression de ses écrits & Inaccessibles (privés à l'auteur) \\
 \hline
-Commentaires sur non publiés & \centering$\times$ Interdit & \centering$\times$ Interdit & \centering\arraybackslash$\times$ Interdit \\
+En attente (\texttt{PENDING}) & Inaccessibles & Consultation \& annulation de soumission & Consultation \& annulation de soumission & Examen, validation \& rejet \\
+\hline
+\rowcolor{gray!10}
+Commentaires sur publiés & Lecture seule & Ajout, édition \& suppression des siens & Ajout, édition des siens \& \textbf{suppression de tous} & Modération \& suppression de tous \\
+\hline
+Gestion des utilisateurs & Inaccessible & Inaccessible & Inaccessible & Attribution rôles (Auteur $\leftrightarrow$ Modérateur) \\
+\hline
+\rowcolor{gray!10}
+Commentaires sur non publiés & \centering$\times$ Interdit & \centering$\times$ Interdit & \centering$\times$ Interdit & \centering\arraybackslash$\times$ Interdit \\
 \hline
 \end{tabularx}
 \end{table}
@@ -368,32 +373,47 @@ Sécurité globale & Intégration & Scénario complet en 17 étapes (isolation b
 \end{itemize}
 \paragraph{Pourquoi :} Les suppressions d'articles ou de commentaires ainsi que les changements de statut éditorial (validation et mise en ligne publique, dépublication, soumission pour validation, annulation, renvoi en brouillon) sont des opérations à impact fort ou irréversibles. Un composant modal sur mesure garantit une expérience visuelle moderne, harmonisée avec la charte Tailwind CSS, tout en prévenant les clics involontaires.
 
+\subsubsection{Axe 15 : Actualisation instantanée et synchronisation réactive des rôles}
+\paragraph{Question :} Comment garantir qu'un utilisateur promu ou rétrogradé voit son nouveau rôle et ses nouveaux droits immédiatement sans avoir à se reconnecter ?
+\paragraph{Options :}
+\begin{itemize}
+    \item[$\boxtimes$] Interrogation active et transparente du profil connecté via un endpoint dédié (\texttt{GET /api/auth/me}) déclenchée au démarrage de l'application et à chaque navigation Angular.
+    \item[$\square$] Maintien des données du profil figées dans le stockage local du navigateur (\texttt{localStorage}) jusqu'à une déconnexion et reconnexion manuelle.
+    \item[$\square$] Intégration d'un bus WebSocket persistant, lourd et disproportionné pour le simple rafraîchissement d'habilitations.
+\end{itemize}
+\paragraph{Pourquoi :} Dans une architecture découplée avec jetons JWT et SPA, les données utilisateur enregistrées dans le navigateur peuvent devenir obsolètes si un administrateur change un rôle côté serveur. En interrogeant légèrement le backend via \texttt{GET /api/auth/me} à chaque navigation et rechargement de page, le frontend met à jour instantanément le profil et les permissions en tâche de fond : dès qu'un auteur est promu modérateur, son badge et ses droits de modération apparaissent immédiatement au moindre clic, sans aucune friction.
+
 \subsection{Écrans et parcours utilisateur}
 
 L'application couvre l'ensemble des parcours fonctionnels d'un blog collaboratif :
 \begin{itemize}
     \item \textbf{Visiteur anonyme} : Consulte le flux des articles publiés sur \texttt{/articles}, effectue des recherches textuelles, lit les détails d'un article et ses commentaires. Il peut créer un compte sur \texttt{/register} ou s'identifier sur \texttt{/login}.
     \item \textbf{Auteur authentifié} (\texttt{ROLE\_USER}) : Rédige des articles sur \texttt{/articles/nouveau} (créés au statut initial \texttt{DRAFT}). Il dispose de son espace \texttt{/mes-brouillons} pour retrouver ses articles en cours, les modifier, les supprimer ou les soumettre en validation (\texttt{PENDING\_REVIEW}). Il peut commenter les articles publiés.
-    \item \textbf{Administrateur} (\texttt{ROLE\_ADMIN}) : Dédié exclusivement à l'espace de gestion et de validation \texttt{/admin}. Par principe de séparation stricte des responsabilités et respect de l'intégrité éditoriale, l'administrateur n'intervient pas comme lecteur ordinaire, ne rédige pas d'articles et ne retouche pas le texte des auteurs. Son interface et ses droits sont concentrés sur la revue de conformité : prévisualisation modale en lecture seule, validation et publication des articles soumis (\texttt{PENDING\_REVIEW}), renvoi en brouillon (\texttt{DRAFT}), dépublication ou suppression définitive. Toute tentative d'accès aux routes publiques ou éditoriales le redirige automatiquement vers son tableau de bord.
+    \item \textbf{Modérateur authentifié} (\texttt{ROLE\_MODERATOR}) : Auteur disposant de privilèges élargis sur l'espace communautaire. Il conserve toutes les fonctionnalités de rédaction, soumission et gestion de ses propres articles, et bénéficie du droit d'intervention pour supprimer tout commentaire inapproprié sur la plateforme. Son rôle est matérialisé par un badge cyan distinctif dans l'en-tête de navigation.
+    \item \textbf{Administrateur} (\texttt{ROLE\_ADMIN}) : Dédié exclusivement à l'espace de gestion et de validation \texttt{/admin}. Par principe de séparation stricte des responsabilités et respect de l'intégrité éditoriale, l'administrateur n'intervient pas comme lecteur ordinaire, ne rédige pas d'articles et ne retouche pas le texte des auteurs. Son interface et ses droits sont concentrés sur la revue de conformité (validation, rejet, dépublication, suppression d'articles) et la gouvernance des utilisateurs (attribution ou retrait du rôle Modérateur, avec interdiction stricte de promotion au rôle Administrateur et protection du compte admin principal).
 \end{itemize}
 
 \begin{table}[h!]
 \centering
-\small
-\begin{tabular}{|l|c|c|c|}
+\scriptsize
+\begin{tabular}{|l|c|c|c|c|}
 \hline
-\textbf{Action / Ressource} & \textbf{Visiteur} & \textbf{Auteur (\texttt{ROLE\_USER})} & \textbf{Admin (\texttt{ROLE\_ADMIN})} \\
+\textbf{Action / Ressource} & \textbf{Visiteur} & \textbf{Auteur} & \textbf{Modérateur} & \textbf{Admin} \\
 \hline
-Consulter les articles publiés & $\checkmark$ & $\checkmark$ & $\times$ (Redirection \texttt{/admin}) \\
-Rechercher des articles & $\checkmark$ & $\checkmark$ & $\times$ \\
-Commenter un article publié & $\times$ & $\checkmark$ & $\times$ (Réservé aux lecteurs) \\
-Rédiger un article (\texttt{POST}) & $\times$ & $\checkmark$ (\texttt{DRAFT}) & $\times$ (403 Forbidden) \\
-Modifier le texte (\texttt{PUT}) & $\times$ & $\checkmark$ (Auteur si \texttt{DRAFT}) & $\times$ (403 Forbidden) \\
-Soumettre à validation & $\times$ & $\checkmark$ (Auteur seul) & $\times$ \\
-Valider et publier & $\times$ & $\times$ & $\checkmark$ (\texttt{/admin}) \\
-Renvoyer en brouillon & $\times$ & $\times$ & $\checkmark$ (\texttt{/admin}) \\
-Dépublier un article & $\times$ & $\times$ & $\checkmark$ (\texttt{/admin}) \\
-Supprimer un article & $\times$ & $\checkmark$ (Ses brouillons) & $\checkmark$ (\texttt{/admin}) \\
+Consulter les articles publiés & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\times$ (Redirection \texttt{/admin}) \\
+Rechercher des articles & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\times$ \\
+Commenter un article publié & $\times$ & $\checkmark$ & $\checkmark$ & $\times$ \\
+Supprimer ses propres commentaires & $\times$ & $\checkmark$ & $\checkmark$ & $\times$ \\
+Supprimer les commentaires tiers & $\times$ & $\times$ & $\checkmark$ & $\checkmark$ (\texttt{/admin}) \\
+Rédiger un article (\texttt{POST}) & $\times$ & $\checkmark$ (\texttt{DRAFT}) & $\checkmark$ (\texttt{DRAFT}) & $\times$ (403 Forbidden) \\
+Modifier le texte (\texttt{PUT}) & $\times$ & $\checkmark$ (Si \texttt{DRAFT}) & $\checkmark$ (Si \texttt{DRAFT}) & $\times$ (403 Forbidden) \\
+Soumettre à validation & $\times$ & $\checkmark$ (Auteur) & $\checkmark$ (Auteur) & $\times$ \\
+Valider et publier & $\times$ & $\times$ & $\times$ & $\checkmark$ (\texttt{/admin}) \\
+Renvoyer en brouillon & $\times$ & $\times$ & $\times$ & $\checkmark$ (\texttt{/admin}) \\
+Dépublier un article & $\times$ & $\times$ & $\times$ & $\checkmark$ (\texttt{/admin}) \\
+Supprimer un article & $\times$ & $\checkmark$ (Ses brouillons) & $\checkmark$ (Ses brouillons) & $\checkmark$ (\texttt{/admin}) \\
+Promouvoir/Rétrograder Modérateur & $\times$ & $\times$ & $\times$ & $\checkmark$ (\texttt{/admin}) \\
+Promouvoir Administrateur & $\times$ & $\times$ & $\times$ & $\times$ (Verrouillé) \\
 \hline
 \end{tabular}
 \caption{Matrice de contrôle d'accès basée sur les rôles (RBAC)}
@@ -429,9 +449,86 @@ L'ensemble de la plateforme est orchestré via un fichier \texttt{docker-compose
 La plateforme \textbf{Mini-Blog} dispose d'une implémentation fullstack complète, opérationnelle et rigoureusement documentée :
 \begin{itemize}
     \item \textbf{Excellence backend} : Architecture Spring Boot 3 en Java 21, persistence PostgreSQL 16 avec migrations Flyway, hachage BCrypt, jetons JJWT stateless et sécurité granulaire par ressource.
-    \item \textbf{Couverture de tests} : Suite automatisée de 24 tests unitaires et d'intégration validant 100\% de la matrice des droits et des règles d'étanchéité éditoriale.
+    \item \textbf{Couverture de tests} : Suite automatisée de 40 tests unitaires et d'intégration validant 100\% de la matrice des droits, de la gouvernance des rôles, de la gestion du compte et des règles d'étanchéité éditoriale.
     \item \textbf{Expérience frontend} : Application Angular 18 moderne, performante et réactive exploitant les Signals, un design system moderne avec Tailwind CSS, et une tolérance aux pannes réseau.
     \item \textbf{Déploiement reproductible} : Orchestration conteneurisée via Docker Compose, isolation étanche des secrets d'environnement via \texttt{.env.example}, et reverse-proxying Nginx sur le port conventionnel \texttt{4200}.
 \end{itemize}
+
+\newpage
+\appendix
+\section{Annexe : Référentiel exhaustif des points de terminaison (Endpoints API)}
+
+Le tableau récapitulatif ci-dessous recense l'ensemble des points d'entrée de l'API RESTful exposée par le backend Spring Boot, avec leur méthode HTTP, leur chemin d'accès, les restrictions d'accès et leur rôle fonctionnel :
+
+\begin{table}[htbp]
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.25}
+\caption{Répertoire complet des endpoints de l'API REST Mini-Blog}
+\label{tab:api-endpoints}
+\setlength{\arrayrulewidth}{0.4pt}
+\begin{tabularx}{\textwidth}{|>{\bfseries}p{1.4cm}|>{\ttfamily}p{4.2cm}|p{2.6cm}|X|}
+\hline
+\rowcolor{gray!75}
+\color{white}\textbf{Méthode} & \color{white}\textbf{Chemin (URI)} & \color{white}\textbf{Accès / Rôle requis} & \color{white}\textbf{Rôle et description fonctionnelle} \\
+\hline
+\multicolumn{4}{|l|}{\cellcolor{gray!20}\textbf{1. Authentification (\texttt{/api/auth})}} \\
+\hline
+POST & /api/auth/register & Public (Anonyme) & Inscription d'un nouvel utilisateur (créé avec le rôle \texttt{ROLE\_USER}). \\
+\hline
+POST & /api/auth/login & Public (Anonyme) & Authentification par email/mot de passe et émission d'un token JWT. \\
+\hline
+GET & /api/auth/me & Authentifié (Tous) & Récupération du profil synchronisé à jour de l'utilisateur connecté. \\
+\hline
+\multicolumn{4}{|l|}{\cellcolor{gray!20}\textbf{2. Gestion du compte personnel (\texttt{/api/account})}} \\
+\hline
+PATCH & /api/account/email & Authentifié (Auteur / Mod.) & Modification de l'adresse email après vérification du mot de passe actuel. \\
+\hline
+PATCH & /api/account/password & Authentifié (Auteur / Mod.) & Modification du mot de passe avec validation de l'ancien et confirmation. \\
+\hline
+DELETE & /api/account & Authentifié (Auteur / Mod.) & Suppression définitive du compte et effacement en cascade (articles et commentaires). \\
+\hline
+\multicolumn{4}{|l|}{\cellcolor{gray!20}\textbf{3. Gestion des articles (\texttt{/api/articles})}} \\
+\hline
+GET & /api/articles & Public (Anonyme) & Liste paginée des articles publiés (ou filtrage avec recherche textuelle). \\
+\hline
+POST & /api/articles & Authentifié (Auteur / Mod.) & Rédaction d'un nouvel article (créé obligatoirement au statut \texttt{DRAFT}). \\
+\hline
+GET & /api/articles/my-drafts & Authentifié (Auteur / Mod.) & Consultation privée de l'ensemble de ses brouillons et articles en attente. \\
+\hline
+GET & /api/articles/\{id\} & Public / Auteur & Détail d'un article publié (ou d'un brouillon si l'utilisateur en est l'auteur). \\
+\hline
+PUT & /api/articles/\{id\} & Auteur (si \texttt{DRAFT}) & Modification du titre et du contenu d'un article en brouillon. \\
+\hline
+DELETE & /api/articles/\{id\} & Auteur (brouillon) / Admin & Suppression définitive d'un article et de ses commentaires en cascade. \\
+\hline
+PATCH & /api/articles/\{id\}/submit & Auteur propriétaire & Soumission d'un brouillon (\texttt{DRAFT} $\to$ \texttt{PENDING\_REVIEW}) pour examen. \\
+\hline
+PATCH & /api/articles/\{id\}/cancel & Auteur propriétaire & Annulation de la soumission (\texttt{PENDING\_REVIEW} $\to$ \texttt{DRAFT}) pour modifications. \\
+\hline
+PATCH & /api/articles/\{id\}/publish & Administrateur & Validation et publication en ligne d'un article soumis (\texttt{PUBLISHED}). \\
+\hline
+PATCH & /api/articles/\{id\}/reject & Administrateur & Rejet d'un article soumis et renvoi à l'auteur en brouillon (\texttt{DRAFT}). \\
+\hline
+PATCH & /api/articles/\{id\}/unpublish & Administrateur & Dépublication d'un article public (\texttt{PUBLISHED} $\to$ \texttt{DRAFT}). \\
+\hline
+\multicolumn{4}{|l|}{\cellcolor{gray!20}\textbf{4. Commentaires (\texttt{/api/comments})}} \\
+\hline
+GET & /api/articles/\{id\}/comments & Public (Anonyme) & Liste paginée des commentaires d'un article publié (tri chronologique). \\
+\hline
+POST & /api/articles/\{id\}/comments & Authentifié (Auteur / Mod.) & Ajout d'un commentaire sur un article publié. \\
+\hline
+PUT & /api/comments/\{id\} & Auteur du commentaire & Modification du texte de son propre commentaire. \\
+\hline
+DELETE & /api/comments/\{id\} & Auteur / Modérateur / Admin & Suppression d'un commentaire (auteur du sien, modérateur ou admin de tous). \\
+\hline
+\multicolumn{4}{|l|}{\cellcolor{gray!20}\textbf{5. Administration et gouvernance (\texttt{/api/admin})}} \\
+\hline
+GET & /api/admin/users & Administrateur & Liste complète de tous les utilisateurs inscrits sur la plateforme. \\
+\hline
+PATCH & /api/admin/users/\{id\}/role & Administrateur & Attribution ou retrait du rôle Modérateur (\texttt{ROLE\_USER} $\leftrightarrow$ \texttt{ROLE\_MODERATOR}). \\
+\hline
+\end{tabularx}
+\end{table}
 
 \end{document}

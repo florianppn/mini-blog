@@ -136,6 +136,16 @@ class CommentServiceTest {
     }
 
     @Test
+    void deleteComment_ModeratorCanDeleteAnyComment() {
+        User moderator = User.builder().id(4L).email("mod@example.com").role(Role.ROLE_MODERATOR).build();
+        when(commentRepository.findById(100L)).thenReturn(Optional.of(comment));
+        when(userRepository.findByEmail("mod@example.com")).thenReturn(Optional.of(moderator));
+
+        assertDoesNotThrow(() -> commentService.deleteComment(100L, "mod@example.com"));
+        verify(commentRepository).delete(comment);
+    }
+
+    @Test
     void deleteComment_OtherUserCannotDelete_ThrowsAccessDenied() {
         when(commentRepository.findById(100L)).thenReturn(Optional.of(comment));
         when(userRepository.findByEmail("other@example.com")).thenReturn(Optional.of(otherUser));

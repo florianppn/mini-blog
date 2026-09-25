@@ -71,4 +71,10 @@ public class AuthService {
                 .user(UserResponse.fromEntity(user))
                 .build();
     }
+
+    public UserResponse getCurrentUser(String email) {
+        User user = userRepository.findByEmail(email.toLowerCase().trim())
+                .orElseThrow(() -> new BadRequestException("Utilisateur non trouvé"));
+        return UserResponse.fromEntity(user);
+    }
 }

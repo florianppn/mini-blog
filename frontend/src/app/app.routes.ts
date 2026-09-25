@@ -9,6 +9,7 @@ import { MyDraftsComponent } from './features/drafts/my-drafts.component';
 import { AdminDashboardComponent } from './features/admin/admin-dashboard.component';
 import { LoginComponent } from './features/auth/login/login.component';
 import { RegisterComponent } from './features/auth/register/register.component';
+import { AccountSettingsComponent } from './features/account/account-settings.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'articles', pathMatch: 'full' },
@@ -17,6 +18,7 @@ export const routes: Routes = [
   { path: 'articles/:id', component: ArticleDetailComponent, canActivate: [noAdminGuard] },
   { path: 'articles/:id/editer', component: ArticleFormComponent, canActivate: [authGuard, noAdminGuard] },
   { path: 'mes-brouillons', component: MyDraftsComponent, canActivate: [authGuard, noAdminGuard] },
+  { path: 'parametres', component: AccountSettingsComponent, canActivate: [authGuard, noAdminGuard] },
   { path: 'admin', component: AdminDashboardComponent, canActivate: [adminGuard] },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },

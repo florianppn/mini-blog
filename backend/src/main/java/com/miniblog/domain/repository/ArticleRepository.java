@@ -27,4 +27,6 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
 
     @Query("SELECT a FROM Article a WHERE a.status = :status OR a.author = :author")
     Page<Article> findPublishedOrAuthorDrafts(@Param("status") ArticleStatus status, @Param("author") User author, Pageable pageable);
+
+    void deleteByAuthor(User author);
 }

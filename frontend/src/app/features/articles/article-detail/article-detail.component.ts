@@ -199,7 +199,7 @@ export class ArticleDetailComponent implements OnInit {
   canDeleteComment(comment: Comment): boolean {
     const user = this.authService.currentUser();
     if (!user) return false;
-    if (this.authService.isAdmin()) return true;
+    if (this.authService.isAdmin() || this.authService.isModerator()) return true;
     return comment.author.id === user.id;
   }
 

@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { Router, NavigationEnd } from '@angular/router';
+import { Observable, filter, tap } from 'rxjs';
 import { AuthResponse, LoginRequest, RegisterRequest } from '../models/auth.model';
 import { User } from '../models/user.model';
 
@@ -21,6 +21,32 @@ export class AuthService {
 
   isAuthenticated = computed(() => !!this.currentUser());
   isAdmin = computed(() => this.currentUser()?.role === 'ROLE_ADMIN');
+  isModerator = computed(() => this.currentUser()?.role === 'ROLE_MODERATOR');
+
+  constructor() {
+    // Synchronisation immédiate dès le chargement si un token est présent
+    if (this.token()) {
+      this.refreshCurrentUser().subscribe({ error: () => {} });
+    }
+
+    // Synchronisation automatique à chaque navigation
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      if (this.token()) {
+        this.refreshCurrentUser().subscribe({ error: () => {} });
+      }
+    });
+  }
+
+  refreshCurrentUser(): Observable<User> {
+    return this.http.get<User>('/api/auth/me').pipe(
+      tap(user => {
+        localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+        this.currentUser.set(user);
+      })
+    );
+  }
 
   login(request: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>('/api/auth/login', request).pipe(
@@ -46,7 +72,7 @@ export class AuthService {
     return this.token();
   }
 
-  private handleAuthSuccess(response: AuthResponse): void {
+  handleAuthSuccess(response: AuthResponse): void {
     localStorage.setItem(this.TOKEN_KEY, response.token);
     localStorage.setItem(this.USER_KEY, JSON.stringify(response.user));
     this.token.set(response.token);
