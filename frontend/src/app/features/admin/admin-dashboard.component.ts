@@ -104,7 +104,7 @@ export class AdminDashboardComponent implements OnInit {
     const confirmed = await this.confirmDialog.confirm({
       title: 'Valider et publier l\'article',
       message: `L'article "${article.title}" va être rendu public. Il apparaîtra immédiatement sur la page d'accueil et le flux d'articles pour l'ensemble des visiteurs et des lecteurs.`,
-      confirmText: 'Valider & Publier',
+      confirmText: 'Valider et publier',
       variant: 'success'
     });
     if (!confirmed) return;

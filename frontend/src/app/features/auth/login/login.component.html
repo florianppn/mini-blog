@@ -3,51 +3,51 @@
     
     <!-- Header -->
     <div class="text-center mb-8">
-      <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center mx-auto shadow-lg shadow-indigo-500/25 mb-4">
-        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="w-10 h-10 rounded-lg bg-zinc-900 text-white flex items-center justify-center mx-auto mb-4 shadow-sm">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
         </svg>
       </div>
-      <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Connexion à votre compte</h2>
-      <p class="mt-2 text-sm text-slate-600">
+      <h2 class="text-2xl sm:text-3xl font-semibold text-zinc-950 tracking-tight">Connexion</h2>
+      <p class="mt-2 text-sm text-zinc-600">
         Ou
-        <a routerLink="/register" class="font-semibold text-indigo-600 hover:text-indigo-500 transition">
-          créez un nouveau compte auteur gratuitement
+        <a routerLink="/register" class="font-medium text-zinc-900 underline hover:text-black">
+          créer un nouveau compte auteur
         </a>
       </p>
     </div>
 
     <!-- Form Card -->
-    <div class="bg-white p-8 rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-900/5">
+    <div class="bg-white p-8 rounded-xl border border-zinc-200/90 shadow-sm">
       
       <!-- Error alert -->
       @if (errorMessage()) {
-        <div class="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center gap-3">
-          <svg class="w-5 h-5 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="mb-6 p-3.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-center gap-2.5">
+          <svg class="w-4 h-4 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span>{{ errorMessage() }}</span>
         </div>
       }
 
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-5">
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-4">
         <div>
-          <label for="email" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-            Adresse Email
+          <label for="email" class="block text-xs font-medium text-zinc-700 mb-1.5">
+            Adresse email
           </label>
           <input
             id="email"
             type="email"
             formControlName="email"
             placeholder="votre@email.com"
-            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition" />
+            class="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 transition shadow-sm" />
           @if (loginForm.get('email')?.touched && loginForm.get('email')?.invalid) {
-            <p class="text-rose-600 text-xs mt-1">Veuillez renseigner un email valide.</p>
+            <p class="text-red-600 text-xs mt-1">Veuillez renseigner un email valide.</p>
           }
         </div>
 
         <div>
-          <label for="password" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+          <label for="password" class="block text-xs font-medium text-zinc-700 mb-1.5">
             Mot de passe
           </label>
           <input
@@ -55,24 +55,21 @@
             type="password"
             formControlName="password"
             placeholder="••••••••"
-            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition" />
+            class="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 transition shadow-sm" />
           @if (loginForm.get('password')?.touched && loginForm.get('password')?.invalid) {
-            <p class="text-rose-600 text-xs mt-1">Le mot de passe est obligatoire.</p>
+            <p class="text-red-600 text-xs mt-1">Le mot de passe est obligatoire.</p>
           }
         </div>
 
         <button
           type="submit"
           [disabled]="loginForm.invalid || isLoading()"
-          class="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white text-sm font-bold rounded-xl transition shadow-md hover:shadow-indigo-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+          class="w-full py-2.5 px-4 bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-medium rounded-lg transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2">
           @if (isLoading()) {
-            <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <div class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             <span>Connexion en cours...</span>
           } @else {
             <span>Se connecter</span>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
           }
         </button>
       </form>

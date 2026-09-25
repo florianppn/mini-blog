@@ -133,7 +133,7 @@ export class ArticleDetailComponent implements OnInit {
     const confirmed = await this.confirmDialog.confirm({
       title: 'Valider et publier l\'article',
       message: `L'article "${art.title}" va être rendu public et visible par tous les visiteurs.`,
-      confirmText: 'Valider & Publier',
+      confirmText: 'Valider et publier',
       variant: 'success'
     });
     if (!confirmed) return;

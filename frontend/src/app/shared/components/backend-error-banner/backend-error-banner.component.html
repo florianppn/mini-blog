@@ -1,22 +1,22 @@
 @if (networkService.isBackendDown()) {
-  <div class="fixed bottom-5 right-5 z-50 max-w-md w-full animate-bounce-short">
-    <div class="bg-rose-900/95 backdrop-blur-md text-white p-5 rounded-2xl shadow-2xl border border-rose-500/30 flex flex-col gap-3">
+  <div class="fixed bottom-5 right-5 z-50 max-w-md w-full">
+    <div class="bg-zinc-900 text-white p-4 rounded-xl shadow-lg border border-zinc-800 flex flex-col gap-3">
       <div class="flex items-start gap-3">
-        <div class="p-2 bg-rose-800 rounded-xl flex-shrink-0 text-rose-300">
-          <svg class="w-6 h-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="p-1.5 bg-red-950 text-red-400 rounded-lg flex-shrink-0 border border-red-800/50">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
         <div class="flex-1 min-w-0">
-          <h4 class="font-semibold text-rose-100 text-sm">Connexion au serveur perdue</h4>
-          <p class="text-xs text-rose-200/90 mt-0.5 leading-relaxed">
+          <h4 class="font-medium text-white text-sm">Connexion au serveur interrompue</h4>
+          <p class="text-xs text-zinc-400 mt-0.5 leading-relaxed">
             {{ networkService.errorMessage() }}
           </p>
         </div>
         <button
           (click)="networkService.setBackendUp()"
-          class="text-rose-400 hover:text-white transition-colors p-1"
+          class="text-zinc-400 hover:text-white transition-colors p-1"
           title="Masquer l'alerte">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -24,18 +24,18 @@
         </button>
       </div>
 
-      <div class="flex items-center justify-between pt-2 border-t border-rose-800/80 text-xs">
-        <span class="text-rose-300 flex items-center gap-1.5">
-          <span class="inline-block w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
+      <div class="flex items-center justify-between pt-2 border-t border-zinc-800 text-xs">
+        <span class="text-zinc-400 flex items-center gap-1.5">
+          <span class="inline-block w-1.5 h-1.5 rounded-full bg-red-400"></span>
           @if (networkService.retryCountdown() > 0) {
-            Reconnexion dans {{ networkService.retryCountdown() }}s...
+            Nouvelle tentative dans {{ networkService.retryCountdown() }}s...
           } @else {
             En attente d'une tentative...
           }
         </span>
         <button
           (click)="networkService.manualRetry()"
-          class="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-medium rounded-lg transition shadow-sm hover:shadow flex items-center gap-1">
+          class="px-2.5 py-1 bg-white hover:bg-zinc-100 text-zinc-900 font-medium rounded-md transition shadow-sm text-xs flex items-center gap-1">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>

@@ -1,33 +1,33 @@
-<div class="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 py-10">
   
-  <!-- Hero Header -->
-  <div class="text-center max-w-3xl mx-auto mb-12">
-    <h1 class="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
-      Explorez les publications du <span class="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">MiniBlog</span>
+  <!-- Header -->
+  <div class="max-w-2xl mb-10">
+    <h1 class="text-3xl sm:text-4xl font-semibold text-zinc-950 tracking-tight">
+      Publications
     </h1>
-    <p class="mt-4 text-lg text-slate-600">
-      Articles, retours d'expérience et discussions techniques validés par notre équipe éditoriale.
+    <p class="mt-2 text-base text-zinc-600 leading-relaxed">
+      Articles, retours d'expérience et analyses partagés par les membres de la communauté.
     </p>
 
     <!-- Search Bar -->
-    <div class="mt-8 max-w-lg mx-auto relative">
-      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="mt-6 relative">
+      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-400">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
       </div>
       <input
         type="text"
         [(ngModel)]="searchQuery"
-        placeholder="Rechercher par titre ou contenu..."
-        class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-2xl shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition" />
+        placeholder="Rechercher un article..."
+        class="w-full pl-10 pr-4 py-2.5 bg-white border border-zinc-200 rounded-lg text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 transition shadow-sm" />
     </div>
   </div>
 
   <!-- Loading State -->
   @if (isLoading()) {
     <div class="flex justify-center items-center py-20">
-      <div class="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+      <div class="w-7 h-7 border-2 border-zinc-900 border-t-transparent rounded-full animate-spin"></div>
     </div>
   } @else {
     
@@ -35,33 +35,33 @@
     @if (filteredArticles().length > 0) {
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @for (article of filteredArticles(); track article.id) {
-          <article class="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-slate-300 transition-all flex flex-col overflow-hidden group">
+          <article class="bg-white rounded-xl border border-zinc-200/90 hover:border-zinc-300 shadow-sm transition flex flex-col overflow-hidden group">
             <div class="p-6 flex-1 flex flex-col">
               
-              <div class="mb-3 text-xs text-slate-400">
+              <div class="mb-2.5 text-xs text-zinc-400">
                 {{ article.createdAt | date:'dd MMM yyyy' }}
               </div>
 
-              <h2 class="text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-2">
+              <h2 class="text-lg font-semibold text-zinc-950 group-hover:text-zinc-700 transition-colors line-clamp-2 leading-snug">
                 <a [routerLink]="['/articles', article.id]">
                   {{ article.title }}
                 </a>
               </h2>
 
-              <p class="text-slate-600 text-sm mt-3 line-clamp-3 leading-relaxed flex-1">
+              <p class="text-zinc-600 text-sm mt-2.5 line-clamp-3 leading-relaxed flex-1">
                 {{ article.content }}
               </p>
 
-              <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <div class="mt-6 pt-4 border-t border-zinc-100 flex items-center justify-between text-xs text-zinc-500">
                 <div class="flex items-center gap-2 truncate">
-                  <div class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-[10px]">
+                  <div class="w-5 h-5 rounded-full bg-zinc-100 text-zinc-700 font-semibold flex items-center justify-center text-[10px] border border-zinc-200">
                     {{ article.author.email.charAt(0).toUpperCase() }}
                   </div>
                   <span class="truncate">{{ article.author.email }}</span>
                 </div>
 
-                <div class="flex items-center gap-1 text-slate-400">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="flex items-center gap-1 text-zinc-400">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
                   <span>{{ article.commentCount }}</span>
@@ -79,30 +79,30 @@
           <button
             (click)="loadPage(currentPage() - 1)"
             [disabled]="currentPage() === 0"
-            class="px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition">
+            class="px-3.5 py-1.5 border border-zinc-200 rounded-lg text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition">
             Précédent
           </button>
-          <span class="text-sm text-slate-500">
+          <span class="text-sm text-zinc-500">
             Page {{ currentPage() + 1 }} sur {{ totalPages() }}
           </span>
           <button
             (click)="loadPage(currentPage() + 1)"
             [disabled]="currentPage() >= totalPages() - 1"
-            class="px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition">
+            class="px-3.5 py-1.5 border border-zinc-200 rounded-lg text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition">
             Suivant
           </button>
         </div>
       }
     } @else {
-      <div class="bg-white rounded-3xl border border-slate-200 p-12 text-center max-w-lg mx-auto">
-        <div class="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-4">
-          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+      <div class="bg-white rounded-xl border border-zinc-200 p-12 text-center max-w-lg mx-auto">
+        <div class="w-12 h-12 rounded-lg bg-zinc-100 text-zinc-500 flex items-center justify-center mx-auto mb-3">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
           </svg>
         </div>
-        <h3 class="text-lg font-bold text-slate-900">Aucun article publié</h3>
-        <p class="text-slate-500 text-sm mt-1">
-          {{ searchQuery ? 'Aucun article ne correspond à votre recherche.' : 'Les articles validés par les administrateurs apparaîtront ici.' }}
+        <h3 class="text-base font-semibold text-zinc-900">Aucun article publié</h3>
+        <p class="text-zinc-500 text-sm mt-1">
+          {{ searchQuery ? 'Aucun article ne correspond à votre recherche.' : 'Les articles validés apparaîtront ici dès leur publication.' }}
         </p>
       </div>
     }
