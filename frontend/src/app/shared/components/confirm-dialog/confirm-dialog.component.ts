@@ -1,0 +1,130 @@
+import { Component, HostListener, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ConfirmDialogService, ConfirmVariant } from '../../../core/services/confirm-dialog.service';
+
+@Component({
+  selector: 'app-confirm-dialog',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
+    @if (dialogService.activeDialog(); as dialog) {
+      <div
+        class="fixed inset-0 z-50 overflow-y-auto"
+        aria-labelledby="modal-title"
+        role="dialog"
+        aria-modal="true">
+        <!-- Backdrop -->
+        <div
+          class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity animate-fade-in"
+          (click)="dialogService.handleCancel()">
+        </div>
+
+        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+          <!-- Modal Card -->
+          <div
+            class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-200/80 animate-scale-in"
+            (click)="$event.stopPropagation()">
+
+            <div class="bg-white px-6 pt-6 pb-4 sm:p-6 sm:pb-4">
+              <div class="sm:flex sm:items-start gap-4">
+                
+                <!-- Icon badge according to variant -->
+                <div
+                  class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl sm:mx-0 shadow-sm"
+                  [ngClass]="getBadgeClass(dialog.variant)">
+                  
+                  @if (dialog.variant === 'danger') {
+                    <svg class="h-6 w-6 text-rose-600" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  } @else if (dialog.variant === 'warning') {
+                    <svg class="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    </svg>
+                  } @else {
+                    <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                    </svg>
+                  }
+                </div>
+
+                <!-- Text Content -->
+                <div class="mt-3 text-center sm:mt-0 sm:text-left flex-1">
+                  <h3 class="text-lg font-bold text-slate-900" id="modal-title">
+                    {{ dialog.title }}
+                  </h3>
+                  <div class="mt-2">
+                    <p class="text-sm text-slate-600 leading-relaxed whitespace-pre-line">
+                      {{ dialog.message }}
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="bg-slate-50/80 px-6 py-4 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100">
+              <button
+                type="button"
+                (click)="dialogService.handleCancel()"
+                class="inline-flex w-full justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-100 active:scale-95 transition sm:w-auto">
+                {{ dialog.cancelText }}
+              </button>
+
+              <button
+                type="button"
+                (click)="dialogService.handleConfirm()"
+                [ngClass]="getButtonClass(dialog.variant)"
+                class="inline-flex w-full justify-center rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm active:scale-95 transition sm:w-auto">
+                {{ dialog.confirmText }}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    }
+  `
+})
+export class ConfirmDialogComponent {
+  dialogService = inject(ConfirmDialogService);
+
+  @HostListener('window:keydown.escape')
+  onEscape(): void {
+    if (this.dialogService.activeDialog()) {
+      this.dialogService.handleCancel();
+    }
+  }
+
+  @HostListener('window:keydown.enter')
+  onEnter(): void {
+    if (this.dialogService.activeDialog()) {
+      this.dialogService.handleConfirm();
+    }
+  }
+
+  getBadgeClass(variant?: ConfirmVariant): string {
+    switch (variant) {
+      case 'danger':
+        return 'bg-rose-50 border border-rose-100';
+      case 'warning':
+        return 'bg-amber-50 border border-amber-100';
+      case 'info':
+      default:
+        return 'bg-indigo-50 border border-indigo-100';
+    }
+  }
+
+  getButtonClass(variant?: ConfirmVariant): string {
+    switch (variant) {
+      case 'danger':
+        return 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20';
+      case 'warning':
+        return 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/20';
+      case 'info':
+      default:
+        return 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/20';
+    }
+  }
+}

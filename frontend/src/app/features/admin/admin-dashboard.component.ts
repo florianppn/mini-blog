@@ -3,6 +3,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ArticleService } from '../../core/services/article.service';
+import { ConfirmDialogService } from '../../core/services/confirm-dialog.service';
 import { Article, ArticleStatus } from '../../core/models/article.model';
 import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
 
@@ -371,6 +372,7 @@ import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
 })
 export class AdminDashboardComponent implements OnInit {
   private articleService = inject(ArticleService);
+  private confirmDialog = inject(ConfirmDialogService);
 
   articles = signal<Article[]>([]);
   totalArticlesCount = signal<number>(0);
@@ -457,7 +459,15 @@ export class AdminDashboardComponent implements OnInit {
     });
   }
 
-  rejectArticle(article: Article): void {
+  async rejectArticle(article: Article): Promise<void> {
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Renvoyer en brouillon',
+      message: `L'article "${article.title}" sera renvoyé à son auteur afin qu'il puisse y apporter des modifications. Il disparaîtra de la file d'attente de validation.`,
+      confirmText: 'Renvoyer en brouillon',
+      variant: 'warning'
+    });
+    if (!confirmed) return;
+
     this.actionLoadingId.set(article.id);
     this.articleService.rejectArticle(article.id).subscribe({
       next: () => {
@@ -470,7 +480,15 @@ export class AdminDashboardComponent implements OnInit {
     });
   }
 
-  unpublishArticle(article: Article): void {
+  async unpublishArticle(article: Article): Promise<void> {
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Dépublier l\'article',
+      message: `L'article "${article.title}" ne sera plus accessible aux lecteurs. Il repassera au statut de révision et sera retiré du flux public.`,
+      confirmText: 'Dépublier l\'article',
+      variant: 'warning'
+    });
+    if (!confirmed) return;
+
     this.actionLoadingId.set(article.id);
     this.articleService.unpublishArticle(article.id).subscribe({
       next: () => {
@@ -483,10 +501,15 @@ export class AdminDashboardComponent implements OnInit {
     });
   }
 
-  deleteArticle(article: Article): void {
-    if (!confirm(`Confirmez-vous la suppression définitive de l'article "${article.title}" ? Ses commentaires seront également effacés.`)) {
-      return;
-    }
+  async deleteArticle(article: Article): Promise<void> {
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Supprimer définitivement cet article',
+      message: `Confirmez-vous la suppression définitive de l'article "${article.title}" ? Ses commentaires seront également effacés et cette action est irréversible.`,
+      confirmText: 'Supprimer définitivement',
+      variant: 'danger'
+    });
+    if (!confirmed) return;
+
     this.actionLoadingId.set(article.id);
     this.articleService.deleteArticle(article.id).subscribe({
       next: () => {
