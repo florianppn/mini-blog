@@ -39,6 +39,7 @@ class ArticleServiceTest {
     private User otherUser;
     private User admin;
     private Article draftArticle;
+    private Article pendingArticle;
     private Article publishedArticle;
 
     @BeforeEach
@@ -52,6 +53,14 @@ class ArticleServiceTest {
                 .title("Brouillon initial")
                 .content("Contenu brouillon")
                 .status(ArticleStatus.DRAFT)
+                .author(author)
+                .build();
+
+        pendingArticle = Article.builder()
+                .id(15L)
+                .title("Article en attente")
+                .content("Contenu soumis")
+                .status(ArticleStatus.PENDING_REVIEW)
                 .author(author)
                 .build();
 
@@ -79,6 +88,60 @@ class ArticleServiceTest {
         assertNotNull(res);
         assertEquals(ArticleStatus.DRAFT, res.getStatus());
         assertEquals("Mon Titre", res.getTitle());
+    }
+
+    @Test
+    void submitArticle_AuthorCanSubmitDraft_SetsStatusToPendingReview() {
+        when(articleRepository.findById(10L)).thenReturn(Optional.of(draftArticle));
+        when(userRepository.findByEmail("author@example.com")).thenReturn(Optional.of(author));
+        when(articleRepository.save(any(Article.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        ArticleResponse res = articleService.submitArticle(10L, "author@example.com");
+
+        assertNotNull(res);
+        assertEquals(ArticleStatus.PENDING_REVIEW, res.getStatus());
+    }
+
+    @Test
+    void submitArticle_OtherUserCannotSubmitDraft_ThrowsAccessDenied() {
+        when(articleRepository.findById(10L)).thenReturn(Optional.of(draftArticle));
+        when(userRepository.findByEmail("other@example.com")).thenReturn(Optional.of(otherUser));
+
+        assertThrows(AccessDeniedException.class, () -> articleService.submitArticle(10L, "other@example.com"));
+        verify(articleRepository, never()).save(any());
+    }
+
+    @Test
+    void cancelSubmission_AuthorCanCancelPendingArticle_ReturnsToDraft() {
+        when(articleRepository.findById(15L)).thenReturn(Optional.of(pendingArticle));
+        when(userRepository.findByEmail("author@example.com")).thenReturn(Optional.of(author));
+        when(articleRepository.save(any(Article.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        ArticleResponse res = articleService.cancelSubmission(15L, "author@example.com");
+
+        assertNotNull(res);
+        assertEquals(ArticleStatus.DRAFT, res.getStatus());
+    }
+
+    @Test
+    void rejectArticle_AdminRejectsPendingArticle_ReturnsToDraft() {
+        when(articleRepository.findById(15L)).thenReturn(Optional.of(pendingArticle));
+        when(articleRepository.save(any(Article.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        ArticleResponse res = articleService.rejectArticle(15L);
+
+        assertNotNull(res);
+        assertEquals(ArticleStatus.DRAFT, res.getStatus());
+    }
+
+    @Test
+    void updateArticle_AuthorCannotUpdatePendingArticle_ThrowsAccessDenied() {
+        ArticleUpdateRequest req = new ArticleUpdateRequest("Nouveau Titre", "Nouveau Contenu");
+        when(articleRepository.findById(15L)).thenReturn(Optional.of(pendingArticle));
+        when(userRepository.findByEmail("author@example.com")).thenReturn(Optional.of(author));
+
+        assertThrows(AccessDeniedException.class, () -> articleService.updateArticle(15L, req, "author@example.com"));
+        verify(articleRepository, never()).save(any());
     }
 
     @Test
@@ -128,10 +191,10 @@ class ArticleServiceTest {
 
     @Test
     void publishArticle_SetsStatusToPublished() {
-        when(articleRepository.findById(10L)).thenReturn(Optional.of(draftArticle));
+        when(articleRepository.findById(15L)).thenReturn(Optional.of(pendingArticle));
         when(articleRepository.save(any(Article.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        ArticleResponse res = articleService.publishArticle(10L);
+        ArticleResponse res = articleService.publishArticle(15L);
 
         assertNotNull(res);
         assertEquals(ArticleStatus.PUBLISHED, res.getStatus());

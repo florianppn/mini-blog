@@ -50,14 +50,8 @@ import { Article } from '../../../core/models/article.model';
               <article class="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-slate-300 transition-all flex flex-col overflow-hidden group">
                 <div class="p-6 flex-1 flex flex-col">
                   
-                  <div class="flex items-center justify-between gap-2 mb-3">
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      Publié
-                    </span>
-                    <span class="text-xs text-slate-400">
-                      {{ article.createdAt | date:'dd MMM yyyy' }}
-                    </span>
+                  <div class="mb-3 text-xs text-slate-400">
+                    {{ article.createdAt | date:'dd MMM yyyy' }}
                   </div>
 
                   <h2 class="text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-2">

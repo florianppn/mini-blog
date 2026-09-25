@@ -24,6 +24,15 @@ export class ArticleService {
     return this.http.get<Page<Article>>(this.baseUrl, { params });
   }
 
+  getMyArticles(page = 0, size = 50): Observable<Page<Article>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sort', 'createdAt,desc');
+
+    return this.http.get<Page<Article>>(`${this.baseUrl}/my-articles`, { params });
+  }
+
   getArticleById(id: number): Observable<Article> {
     return this.http.get<Article>(`${this.baseUrl}/${id}`);
   }
@@ -38,6 +47,18 @@ export class ArticleService {
 
   deleteArticle(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+
+  submitArticle(id: number): Observable<Article> {
+    return this.http.patch<Article>(`${this.baseUrl}/${id}/submit`, {});
+  }
+
+  cancelSubmission(id: number): Observable<Article> {
+    return this.http.patch<Article>(`${this.baseUrl}/${id}/cancel-submission`, {});
+  }
+
+  rejectArticle(id: number): Observable<Article> {
+    return this.http.patch<Article>(`${this.baseUrl}/${id}/reject`, {});
   }
 
   publishArticle(id: number): Observable<Article> {

@@ -22,7 +22,7 @@ import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/articles")
-@Tag(name = "Articles", description = "Endpoints de gestion, consultation et cycle de vie des articles")
+@Tag(name = "Articles", description = "Endpoints de gestion, consultation et cycle de vie des articles (DRAFT / PENDING_REVIEW / PUBLISHED)")
 public class ArticleController {
 
     private final ArticleService articleService;
@@ -43,8 +43,19 @@ public class ArticleController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/my-articles")
+    @SecurityRequirement(name = "BearerAuth")
+    @Operation(summary = "Lister les articles de l'auteur connecté (statuts DRAFT et PENDING_REVIEW)")
+    public ResponseEntity<Page<ArticleResponse>> getMyArticles(
+            @PageableDefault(size = 50, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            Principal principal
+    ) {
+        Page<ArticleResponse> response = articleService.getMyArticles(principal.getName(), pageable);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/{id}")
-    @Operation(summary = "Consulter un article par son ID (les brouillons sont réservés à l'auteur et aux administrateurs)")
+    @Operation(summary = "Consulter un article par son ID (les articles non publiés sont réservés à l'auteur et aux administrateurs)")
     public ResponseEntity<ArticleResponse> getArticleById(@PathVariable Long id, Principal principal) {
         String email = principal != null ? principal.getName() : null;
         ArticleResponse response = articleService.getArticleById(id, email);
@@ -82,10 +93,35 @@ public class ArticleController {
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/{id}/submit")
+    @SecurityRequirement(name = "BearerAuth")
+    @Operation(summary = "Soumettre un brouillon pour validation (DRAFT -> PENDING_REVIEW), action réservée à l'auteur")
+    public ResponseEntity<ArticleResponse> submitArticle(@PathVariable Long id, Principal principal) {
+        ArticleResponse response = articleService.submitArticle(id, principal.getName());
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{id}/cancel-submission")
+    @SecurityRequirement(name = "BearerAuth")
+    @Operation(summary = "Annuler la soumission pour validation (PENDING_REVIEW -> DRAFT), action réservée à l'auteur")
+    public ResponseEntity<ArticleResponse> cancelSubmission(@PathVariable Long id, Principal principal) {
+        ArticleResponse response = articleService.cancelSubmission(id, principal.getName());
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{id}/reject")
+    @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "BearerAuth")
+    @Operation(summary = "Rejeter un article soumis et le renvoyer en brouillon (PENDING_REVIEW -> DRAFT), réservé ADMIN")
+    public ResponseEntity<ArticleResponse> rejectArticle(@PathVariable Long id) {
+        ArticleResponse response = articleService.rejectArticle(id);
+        return ResponseEntity.ok(response);
+    }
+
     @PatchMapping("/{id}/publish")
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "BearerAuth")
-    @Operation(summary = "Publier un article (DRAFT -> PUBLISHED), réservé strictement au rôle ADMIN")
+    @Operation(summary = "Valider et publier un article (PENDING_REVIEW -> PUBLISHED), réservé ADMIN")
     public ResponseEntity<ArticleResponse> publishArticle(@PathVariable Long id) {
         ArticleResponse response = articleService.publishArticle(id);
         return ResponseEntity.ok(response);
@@ -94,7 +130,7 @@ public class ArticleController {
     @PatchMapping("/{id}/unpublish")
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "BearerAuth")
-    @Operation(summary = "Dépublier un article (PUBLISHED -> DRAFT), réservé strictement au rôle ADMIN")
+    @Operation(summary = "Dépublier un article (PUBLISHED -> DRAFT), réservé ADMIN")
     public ResponseEntity<ArticleResponse> unpublishArticle(@PathVariable Long id) {
         ArticleResponse response = articleService.unpublishArticle(id);
         return ResponseEntity.ok(response);

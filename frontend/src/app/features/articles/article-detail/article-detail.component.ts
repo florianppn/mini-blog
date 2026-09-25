@@ -16,14 +16,17 @@ import { MarkdownPipe } from '../../../shared/pipes/markdown.pipe';
   template: `
     <div class="max-w-4xl mx-auto px-4 sm:px-6 py-10">
       
-      <!-- Back link -->
-      <a routerLink="/articles" class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-indigo-600 transition mb-6">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-        </svg>
-        Retour aux articles
-      </a>
+      <!-- Back navigation button -->
+      <div class="mb-6">
+        <a routerLink="/articles" class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-indigo-600 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Retour aux articles
+        </a>
+      </div>
 
+      <!-- Loading State -->
       @if (isLoading()) {
         <div class="flex justify-center items-center py-24">
           <div class="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
@@ -34,35 +37,85 @@ import { MarkdownPipe } from '../../../shared/pipes/markdown.pipe';
           <!-- Article Meta Header -->
           <div class="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-100">
             <div class="flex items-center gap-3">
-              <span
-                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
-                [ngClass]="article()!.status === 'PUBLISHED' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'">
-                <span
-                  class="w-2 h-2 rounded-full"
-                  [ngClass]="article()!.status === 'PUBLISHED' ? 'bg-emerald-500' : 'bg-amber-500'"></span>
-                {{ article()!.status === 'PUBLISHED' ? 'Publié' : 'Brouillon' }}
-              </span>
+              @if (isAuthorOrAdmin()) {
+                @if (article()!.status === 'PUBLISHED') {
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    Publié
+                  </span>
+                } @else if (article()!.status === 'PENDING_REVIEW') {
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                    <span class="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
+                    En attente de validation
+                  </span>
+                } @else {
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                    Brouillon
+                  </span>
+                }
+              }
 
               <span class="text-xs text-slate-400">
-                Publié le {{ article()!.createdAt | date:'dd MMMM yyyy à HH:mm' }}
+                {{ article()!.status === 'PUBLISHED' ? 'Publié le ' : 'Mis à jour le ' }}
+                {{ article()!.updatedAt | date:'dd MMMM yyyy à HH:mm' }}
               </span>
             </div>
 
-            <!-- Actions (Edit/Delete if allowed) -->
-            @if (canEdit()) {
-              <div class="flex items-center gap-2">
+            <!-- Actions (Workflow, Edit, Delete) -->
+            <div class="flex items-center gap-2 flex-wrap">
+              @if (isAuthor() && article()!.status === 'DRAFT') {
                 <a
                   [routerLink]="['/articles', article()!.id, 'editer']"
                   class="px-3.5 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">
                   Modifier
                 </a>
                 <button
+                  (click)="submitForReview()"
+                  class="px-3.5 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition shadow-sm">
+                  Soumettre pour validation
+                </button>
+                <button
                   (click)="deleteArticle()"
                   class="px-3.5 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg transition">
                   Supprimer
                 </button>
-              </div>
-            }
+              }
+
+              @if (isAuthor() && article()!.status === 'PENDING_REVIEW') {
+                <button
+                  (click)="cancelReview()"
+                  class="px-3.5 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition">
+                  Annuler la soumission
+                </button>
+              }
+
+              @if (authService.isAdmin()) {
+                @if (article()!.status === 'PENDING_REVIEW') {
+                  <button
+                    (click)="publishByAdmin()"
+                    class="px-3.5 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition shadow-sm">
+                    Valider & Publier
+                  </button>
+                  <button
+                    (click)="rejectByAdmin()"
+                    class="px-3.5 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition">
+                    Renvoyer en brouillon
+                  </button>
+                } @else if (article()!.status === 'PUBLISHED') {
+                  <button
+                    (click)="unpublishByAdmin()"
+                    class="px-3.5 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition">
+                    Dépublier
+                  </button>
+                }
+                <button
+                  (click)="deleteArticle()"
+                  class="px-3.5 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg transition">
+                  Supprimer
+                </button>
+              }
+            </div>
           </div>
 
           <!-- Title -->
@@ -77,7 +130,6 @@ import { MarkdownPipe } from '../../../shared/pipes/markdown.pipe';
             </div>
             <div>
               <div class="text-sm font-semibold text-slate-900">{{ article()!.author.email }}</div>
-              <div class="text-xs text-slate-400">Rôle : {{ article()!.author.role === 'ROLE_ADMIN' ? 'Administrateur' : 'Auteur' }}</div>
             </div>
           </div>
 
@@ -109,24 +161,24 @@ import { MarkdownPipe } from '../../../shared/pipes/markdown.pipe';
                   <textarea
                     id="commentInput"
                     [(ngModel)]="newCommentText"
-                    name="newCommentText"
+                    name="comment"
                     rows="3"
                     required
-                    placeholder="Partagez vos réflexions sur cet article..."
-                    class="w-full p-3.5 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition resize-none"></textarea>
+                    placeholder="Partagez votre avis, vos questions ou vos retours sur cet article..."
+                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition resize-none"></textarea>
                 </div>
                 <div class="flex justify-end">
                   <button
                     type="submit"
                     [disabled]="!newCommentText.trim() || isSubmittingComment()"
-                    class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-sm font-semibold rounded-xl transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                    class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-xs font-semibold rounded-xl transition shadow-sm hover:shadow-indigo-500/25 disabled:opacity-50 disabled:cursor-not-allowed">
                     {{ isSubmittingComment() ? 'Envoi...' : 'Publier le commentaire' }}
                   </button>
                 </div>
               </form>
             } @else {
               <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center mb-8">
-                <p class="text-sm text-slate-600">
+                <p class="text-xs text-slate-600">
                   <a routerLink="/login" class="text-indigo-600 font-semibold hover:underline">Connectez-vous</a> pour participer à la discussion et laisser un commentaire.
                 </p>
               </div>
@@ -134,7 +186,7 @@ import { MarkdownPipe } from '../../../shared/pipes/markdown.pipe';
           } @else {
             <div class="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-center mb-8">
               <p class="text-xs text-amber-800">
-                Cet article est actuellement en brouillon. Les commentaires seront autorisés dès sa publication par un administrateur.
+                Cet article n'est pas encore publié. Les commentaires seront autorisés dès sa validation par un administrateur.
               </p>
             </div>
           }
@@ -178,14 +230,11 @@ import { MarkdownPipe } from '../../../shared/pipes/markdown.pipe';
             </p>
           }
         </section>
-
       } @else {
         <div class="bg-white rounded-3xl border border-slate-200 p-12 text-center max-w-lg mx-auto">
-          <h3 class="text-lg font-bold text-slate-900">Article introuvable</h3>
-          <p class="text-slate-500 text-sm mt-1 mb-6">
-            Cet article n'existe pas ou vous n'avez pas l'autorisation d'y accéder (s'il s'agit d'un brouillon non publié).
-          </p>
-          <a routerLink="/articles" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold">
+          <h2 class="text-2xl font-bold text-slate-900 mb-2">Article introuvable</h2>
+          <p class="text-slate-500 text-sm mb-6">Cet article n'existe pas ou vous n'avez pas l'autorisation d'y accéder.</p>
+          <a routerLink="/articles" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition">
             Retour aux articles
           </a>
         </div>
@@ -199,7 +248,7 @@ export class ArticleDetailComponent implements OnInit {
   private router = inject(Router);
   private articleService = inject(ArticleService);
   private commentService = inject(CommentService);
-  authService = inject(AuthService);
+  public authService = inject(AuthService);
 
   article = signal<Article | null>(null);
   comments = signal<Comment[]>([]);
@@ -255,13 +304,58 @@ export class ArticleDetailComponent implements OnInit {
     });
   }
 
-  canEdit(): boolean {
+  isAuthor(): boolean {
     const art = this.article();
     const user = this.authService.currentUser();
     if (!art || !user) return false;
+    return art.author.id === user.id;
+  }
 
-    if (this.authService.isAdmin()) return true;
-    return art.author.id === user.id && art.status === 'DRAFT';
+  isAuthorOrAdmin(): boolean {
+    const art = this.article();
+    const user = this.authService.currentUser();
+    if (!art || !user) return false;
+    return this.authService.isAdmin() || art.author.id === user.id;
+  }
+
+  submitForReview(): void {
+    const art = this.article();
+    if (!art) return;
+    this.articleService.submitArticle(art.id).subscribe({
+      next: updated => this.article.set(updated)
+    });
+  }
+
+  cancelReview(): void {
+    const art = this.article();
+    if (!art) return;
+    this.articleService.cancelSubmission(art.id).subscribe({
+      next: updated => this.article.set(updated)
+    });
+  }
+
+  publishByAdmin(): void {
+    const art = this.article();
+    if (!art) return;
+    this.articleService.publishArticle(art.id).subscribe({
+      next: updated => this.article.set(updated)
+    });
+  }
+
+  rejectByAdmin(): void {
+    const art = this.article();
+    if (!art) return;
+    this.articleService.rejectArticle(art.id).subscribe({
+      next: updated => this.article.set(updated)
+    });
+  }
+
+  unpublishByAdmin(): void {
+    const art = this.article();
+    if (!art) return;
+    this.articleService.unpublishArticle(art.id).subscribe({
+      next: updated => this.article.set(updated)
+    });
   }
 
   deleteArticle(): void {

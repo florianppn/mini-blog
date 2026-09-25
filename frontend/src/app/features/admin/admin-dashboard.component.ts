@@ -13,40 +13,45 @@ import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
   template: `
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       
-      <!-- Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      <!-- Top Header -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200 mb-8">
         <div>
-          <div class="flex items-center gap-2">
-            <span class="p-2 rounded-xl bg-purple-100 text-purple-700">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800">
+              <span class="w-2 h-2 rounded-full bg-purple-600"></span>
+              Console de Modération
             </span>
-            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Panneau d'Administration</h1>
           </div>
-          <p class="text-slate-600 mt-1">Supervisez, validez et modérez l'ensemble des articles du MiniBlog.</p>
+          <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">
+            Dashboard d'Administration
+          </h1>
+          <p class="text-sm text-slate-500 mt-1">
+            Supervisez les articles soumis, validez les publications ou renvoyez en brouillon.
+          </p>
         </div>
 
-        <a
-          routerLink="/articles/nouveau"
-          class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-semibold rounded-xl transition shadow-sm hover:shadow-indigo-500/25 text-sm self-start sm:self-auto">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
-          Nouvel article
-        </a>
+        <div class="flex items-center gap-3">
+          <button
+            (click)="loadPage(currentPage())"
+            class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-semibold rounded-xl transition shadow-sm flex items-center gap-2">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Actualiser
+          </button>
+        </div>
       </div>
 
-      <!-- Notification message -->
+      <!-- Action Toast Banner -->
       @if (actionMessage()) {
-        <div class="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center justify-between animate-fade-in">
+        <div class="mb-6 p-4 rounded-xl bg-purple-50 border border-purple-200 text-purple-900 text-sm font-medium flex items-center justify-between animate-fade-in shadow-sm">
           <div class="flex items-center gap-2">
-            <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span>{{ actionMessage() }}</span>
           </div>
-          <button (click)="actionMessage.set('')" class="text-emerald-600 hover:text-emerald-900">
+          <button (click)="actionMessage.set('')" class="text-purple-400 hover:text-purple-600 transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -61,18 +66,18 @@ import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
             {{ totalArticlesCount() }}
           </div>
           <div>
-            <div class="text-xs uppercase tracking-wider font-semibold text-slate-400">Total Articles</div>
-            <div class="text-lg font-bold text-slate-800">Toutes catégories</div>
+            <div class="text-xs uppercase tracking-wider font-semibold text-slate-400">Total suivi</div>
+            <div class="text-lg font-bold text-slate-800">Articles gérés</div>
           </div>
         </div>
 
         <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-lg">
-            {{ draftCount() }}
+          <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-lg">
+            {{ pendingCount() }}
           </div>
           <div>
-            <div class="text-xs uppercase tracking-wider font-semibold text-slate-400">En attente / Brouillons</div>
-            <div class="text-lg font-bold text-slate-800">À valider</div>
+            <div class="text-xs uppercase tracking-wider font-semibold text-slate-400">À modérer</div>
+            <div class="text-lg font-bold text-slate-800">En attente de validation</div>
           </div>
         </div>
 
@@ -81,7 +86,7 @@ import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
             {{ publishedCount() }}
           </div>
           <div>
-            <div class="text-xs uppercase tracking-wider font-semibold text-slate-400">En Ligne</div>
+            <div class="text-xs uppercase tracking-wider font-semibold text-slate-400">En ligne</div>
             <div class="text-lg font-bold text-slate-800">Articles publiés</div>
           </div>
         </div>
@@ -96,14 +101,14 @@ import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
             (click)="setStatusFilter(undefined)"
             [ngClass]="selectedStatus() === undefined ? 'bg-white text-slate-900 shadow-sm font-semibold' : 'text-slate-600 hover:text-slate-900 font-medium'"
             class="px-3.5 py-1.5 rounded-lg text-xs transition">
-            Tous
+            Tous ({{ totalArticlesCount() }})
           </button>
           <button
-            (click)="setStatusFilter('DRAFT')"
-            [ngClass]="selectedStatus() === 'DRAFT' ? 'bg-white text-amber-800 shadow-sm font-semibold' : 'text-slate-600 hover:text-slate-900 font-medium'"
+            (click)="setStatusFilter('PENDING_REVIEW')"
+            [ngClass]="selectedStatus() === 'PENDING_REVIEW' ? 'bg-white text-purple-800 shadow-sm font-semibold' : 'text-slate-600 hover:text-slate-900 font-medium'"
             class="px-3.5 py-1.5 rounded-lg text-xs transition flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-            Brouillons ({{ draftCount() }})
+            <span class="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
+            En attente ({{ pendingCount() }})
           </button>
           <button
             (click)="setStatusFilter('PUBLISHED')"
@@ -141,11 +146,11 @@ import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
             <div class="overflow-x-auto">
               <table class="w-full text-left border-collapse">
                 <thead>
-                  <tr class="border-b border-slate-200 bg-slate-50/75 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <tr class="bg-slate-50/75 border-b border-slate-100 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                     <th class="py-3.5 px-4">Article</th>
                     <th class="py-3.5 px-4">Auteur</th>
                     <th class="py-3.5 px-4">Statut</th>
-                    <th class="py-3.5 px-4">Date</th>
+                    <th class="py-3.5 px-4">Date de soumission</th>
                     <th class="py-3.5 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
@@ -171,7 +176,6 @@ import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
                           </div>
                           <div>
                             <div class="text-xs font-medium text-slate-800">{{ article.author.email }}</div>
-                            <span class="text-[10px] text-slate-400 font-semibold">{{ article.author.role }}</span>
                           </div>
                         </div>
                       </td>
@@ -183,6 +187,11 @@ import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                             Publié
                           </span>
+                        } @else if (article.status === 'PENDING_REVIEW') {
+                          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
+                            En attente
+                          </span>
                         } @else {
                           <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                             <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
@@ -193,7 +202,7 @@ import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
 
                       <!-- Date -->
                       <td class="py-4 px-4 whitespace-nowrap text-xs text-slate-500">
-                        {{ article.createdAt | date:'dd/MM/yyyy HH:mm' }}
+                        {{ article.updatedAt | date:'dd/MM/yyyy HH:mm' }}
                       </td>
 
                       <!-- Actions -->
@@ -211,49 +220,43 @@ import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
                             </svg>
                           </button>
 
-                          <!-- Publish / Unpublish button -->
-                          @if (article.status === 'DRAFT') {
+                          <!-- Actions according to status -->
+                          @if (article.status === 'PENDING_REVIEW') {
                             <button
                               (click)="publishArticle(article)"
                               [disabled]="isActionLoading(article.id)"
-                              class="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-semibold rounded-lg transition shadow-sm disabled:opacity-50">
+                              class="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-semibold rounded-lg transition shadow-sm disabled:opacity-50"
+                              title="Valider et publier l'article">
                               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                               </svg>
-                              Publier
+                              Valider & Publier
                             </button>
-                          } @else {
+                            <button
+                              (click)="rejectArticle(article)"
+                              [disabled]="isActionLoading(article.id)"
+                              class="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-semibold rounded-lg transition shadow-sm disabled:opacity-50"
+                              title="Refuser et renvoyer en brouillon à l'auteur">
+                              Renvoyer en brouillon
+                            </button>
+                          } @else if (article.status === 'PUBLISHED') {
                             <button
                               (click)="unpublishArticle(article)"
                               [disabled]="isActionLoading(article.id)"
-                              class="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-semibold rounded-lg transition shadow-sm disabled:opacity-50">
-                              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
+                              class="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-semibold rounded-lg transition shadow-sm disabled:opacity-50"
+                              title="Dépublier l'article et le renvoyer en révision">
                               Dépublier
                             </button>
+                            <button
+                              (click)="deleteArticle(article)"
+                              [disabled]="isActionLoading(article.id)"
+                              title="Supprimer l'article"
+                              class="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition">
+                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
                           }
-
-                          <!-- Edit button -->
-                          <a
-                            [routerLink]="['/articles', article.id, 'editer']"
-                            title="Modifier l'article"
-                            class="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                          </a>
-
-                          <!-- Delete button -->
-                          <button
-                            (click)="deleteArticle(article)"
-                            [disabled]="isActionLoading(article.id)"
-                            title="Supprimer l'article"
-                            class="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
 
                         </div>
                       </td>
@@ -266,51 +269,60 @@ import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
 
             <!-- Pagination -->
             @if (totalPages() > 1) {
-              <div class="flex justify-between items-center px-4 py-3 border-t border-slate-200 bg-slate-50/50">
-                <span class="text-xs text-slate-500">
-                  Page {{ currentPage() + 1 }} sur {{ totalPages() }}
-                </span>
+              <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                <span>Page {{ currentPage() + 1 }} sur {{ totalPages() }}</span>
                 <div class="flex items-center gap-2">
                   <button
                     (click)="loadPage(currentPage() - 1)"
                     [disabled]="currentPage() === 0"
-                    class="px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 hover:bg-white disabled:opacity-40 transition">
+                    class="px-3 py-1.5 border border-slate-200 rounded-lg font-medium hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">
                     Précédent
                   </button>
                   <button
                     (click)="loadPage(currentPage() + 1)"
                     [disabled]="currentPage() >= totalPages() - 1"
-                    class="px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 hover:bg-white disabled:opacity-40 transition">
+                    class="px-3 py-1.5 border border-slate-200 rounded-lg font-medium hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">
                     Suivant
                   </button>
                 </div>
               </div>
             }
+
           } @else {
-            <div class="py-16 text-center">
-              <p class="text-slate-500 text-sm">Aucun article ne correspond aux filtres.</p>
+            <div class="py-16 text-center text-slate-400">
+              <svg class="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <p class="text-sm font-medium">Aucun article ne correspond aux critères de sélection.</p>
             </div>
           }
         }
       </div>
 
-      <!-- Preview Modal -->
+      <!-- Quick Preview Modal -->
       @if (previewArticle()) {
         <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-scale-in">
+          <div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl border border-slate-100 flex flex-col max-h-[85vh] overflow-hidden animate-scale-in">
             
             <!-- Modal Header -->
-            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-              <div class="flex items-center gap-3">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <div class="flex items-center gap-2">
                 @if (previewArticle()!.status === 'PUBLISHED') {
-                  <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Publié</span>
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    Publié
+                  </span>
+                } @else if (previewArticle()!.status === 'PENDING_REVIEW') {
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                    En attente de validation
+                  </span>
                 } @else {
-                  <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">Brouillon</span>
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                    Brouillon
+                  </span>
                 }
                 <span class="text-xs text-slate-400">Par {{ previewArticle()!.author.email }}</span>
               </div>
-              
-              <button (click)="closePreview()" class="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition">
+              <button (click)="closePreview()" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -333,13 +345,18 @@ import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
               </a>
 
               <div class="flex items-center gap-2">
-                @if (previewArticle()!.status === 'DRAFT') {
+                @if (previewArticle()!.status === 'PENDING_REVIEW') {
                   <button
                     (click)="publishArticle(previewArticle()!); closePreview()"
                     class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition">
                     Valider & Publier
                   </button>
-                } @else {
+                  <button
+                    (click)="rejectArticle(previewArticle()!); closePreview()"
+                    class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition">
+                    Renvoyer en brouillon
+                  </button>
+                } @else if (previewArticle()!.status === 'PUBLISHED') {
                   <button
                     (click)="unpublishArticle(previewArticle()!); closePreview()"
                     class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition">
@@ -363,18 +380,20 @@ export class AdminDashboardComponent implements OnInit {
   private articleService = inject(ArticleService);
 
   articles = signal<Article[]>([]);
-  isLoading = signal<boolean>(true);
+  totalArticlesCount = signal<number>(0);
+  pendingCount = signal<number>(0);
+  publishedCount = signal<number>(0);
+
   currentPage = signal<number>(0);
-  totalPages = signal<number>(0);
+  totalPages = signal<number>(1);
+  isLoading = signal<boolean>(true);
+
   selectedStatus = signal<ArticleStatus | undefined>(undefined);
   searchQuery = '';
-  actionMessage = signal<string>('');
-  actionLoadingId = signal<number | null>(null);
-  previewArticle = signal<Article | null>(null);
 
-  totalArticlesCount = signal<number>(0);
-  draftCount = signal<number>(0);
-  publishedCount = signal<number>(0);
+  previewArticle = signal<Article | null>(null);
+  actionLoadingId = signal<number | null>(null);
+  actionMessage = signal<string>('');
 
   ngOnInit(): void {
     this.loadPage(0);
@@ -382,12 +401,11 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   refreshMetrics(): void {
-    // Fetch count metrics
     this.articleService.getArticles(undefined, 0, 1000).subscribe({
       next: res => {
         const items = res.content || [];
         this.totalArticlesCount.set(items.length);
-        this.draftCount.set(items.filter(a => a.status === 'DRAFT').length);
+        this.pendingCount.set(items.filter(a => a.status === 'PENDING_REVIEW').length);
         this.publishedCount.set(items.filter(a => a.status === 'PUBLISHED').length);
       }
     });
@@ -437,8 +455,21 @@ export class AdminDashboardComponent implements OnInit {
     this.actionLoadingId.set(article.id);
     this.articleService.publishArticle(article.id).subscribe({
       next: updated => {
-        this.actionMessage.set(`L'article "${article.title}" a été publié avec succès.`);
+        this.actionMessage.set(`L'article "${article.title}" a été validé et publié avec succès.`);
         this.updateItemInList(updated);
+        this.refreshMetrics();
+        this.actionLoadingId.set(null);
+      },
+      error: () => this.actionLoadingId.set(null)
+    });
+  }
+
+  rejectArticle(article: Article): void {
+    this.actionLoadingId.set(article.id);
+    this.articleService.rejectArticle(article.id).subscribe({
+      next: () => {
+        this.actionMessage.set(`L'article "${article.title}" a été renvoyé en brouillon à son auteur.`);
+        this.articles.update(list => list.filter(a => a.id !== article.id));
         this.refreshMetrics();
         this.actionLoadingId.set(null);
       },
@@ -449,9 +480,9 @@ export class AdminDashboardComponent implements OnInit {
   unpublishArticle(article: Article): void {
     this.actionLoadingId.set(article.id);
     this.articleService.unpublishArticle(article.id).subscribe({
-      next: updated => {
-        this.actionMessage.set(`L'article "${article.title}" a été repassé au statut brouillon.`);
-        this.updateItemInList(updated);
+      next: () => {
+        this.actionMessage.set(`L'article "${article.title}" a été dépublié et renvoyé en révision.`);
+        this.articles.update(list => list.filter(a => a.id !== article.id));
         this.refreshMetrics();
         this.actionLoadingId.set(null);
       },

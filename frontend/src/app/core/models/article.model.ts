@@ -1,6 +1,6 @@
 import { User } from './user.model';
 
-export type ArticleStatus = 'DRAFT' | 'PUBLISHED';
+export type ArticleStatus = 'DRAFT' | 'PENDING_REVIEW' | 'PUBLISHED';
 
 export interface Article {
   id: number;

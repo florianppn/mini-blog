@@ -141,33 +141,33 @@ Le projet \textbf{Mini-Blog} a pour objectif d'offrir une plateforme moderne, pe
 \end{itemize}
 \paragraph{Pourquoi :} Ouvrir les commentaires aux anonymes attirerait inévitablement du spam et des messages indésirables : imposer d'être connecté responsabilise les auteurs. De plus, il est illogique de pouvoir commenter un article encore en brouillon : les discussions ne s'ouvrent que sur les articles publics. Enfin, pour le confort d'usage, chaque utilisateur peut corriger ou retirer ses propres messages, tandis que l'administrateur conserve le droit de supprimer n'importe quel commentaire pour faire respecter la charte du blog.
 
-\subsubsection{Axe 4 : Cycle de vie et modification des articles}
-\paragraph{Question :} Un auteur peut-il encore modifier ou supprimer son article une fois que l'administrateur l'a validé et publié ?
+\subsubsection{Axe 4 : Cycle de vie et statuts éditoriaux des articles}
+\paragraph{Question :} Comment éviter qu'un administrateur ne publie par erreur un brouillon inachevé ?
 \paragraph{Options :}
 \begin{itemize}
-    \item[$\boxtimes$] Politique stricte : l'auteur ne peut retoucher son article que tant qu'il est en brouillon. Une fois publié, seul l'administrateur peut le modifier, le dépublier ou le supprimer.
-    \item[$\square$] L'auteur peut modifier son article en ligne à tout moment sans révision.
-    \item[$\square$] Toute modification par l'auteur repasse automatiquement l'article en brouillon masqué.
+    \item[$\boxtimes$] Workflow à trois statuts : brouillon privé (\texttt{DRAFT}), en attente de validation (\texttt{PENDING\_REVIEW}) et publié (\texttt{PUBLISHED}).
+    \item[$\square$] Deux statuts simples sans étape explicite de soumission par l'auteur.
+    \item[$\square$] Publication directe sans modération administrative.
 \end{itemize}
-\paragraph{Pourquoi :} C'est une règle de bon sens éditorial. Si un auteur pouvait modifier son texte librement après validation, il pourrait faire valider un article irréprochable par l'administrateur, puis le remplacer une heure plus tard par du contenu offensant ou publicitaire. Dès lors qu'un article est public, c'est l'administrateur qui engage la responsabilité du site : l'article est donc verrouillé pour l'auteur. Si un changement est requis, l'administrateur peut s'en charger ou renvoyer l'article en brouillon pour réécriture.
+\paragraph{Pourquoi :} Si un administrateur pouvait voir et publier n'importe quel brouillon, il risquerait de mettre en ligne le travail non terminé d'un auteur en pleine rédaction. Avec trois statuts, la frontière est claire : tant qu'un article est en brouillon, il est strictement privé à son auteur. Quand l'auteur juge son texte prêt, il le soumet pour validation. L'article est alors gelé pour l'auteur et soumis à l'administrateur, qui peut l'approuver ou le renvoyer en brouillon. Une fois publié, l'article devient public et verrouillé.
 
-\subsubsection{Axe 5 : Déclenchement de la publication}
-\paragraph{Question :} Comment concevoir l'action de publication dans l'application pour éviter les erreurs et les fraudes ?
+\subsubsection{Axe 5 : Déclenchement de la publication et modération}
+\paragraph{Question :} Comment concevoir les actions de validation pour éviter les confusions ?
 \paragraph{Options :}
 \begin{itemize}
-    \item[$\boxtimes$] Boutons et actions dédiés réservés aux administrateurs (\texttt{publish} et \texttt{unpublish}).
-    \item[$\square$] Un simple champ de formulaire à cocher lors de la modification de l'article.
+    \item[$\boxtimes$] Actions dédiées par rôle : soumission et annulation pour l'auteur, validation, rejet et dépublication pour l'administrateur.
+    \item[$\square$] Un simple champ de formulaire à cocher lors de l'enregistrement du texte.
 \end{itemize}
-\paragraph{Pourquoi :} Séparer nettement la modification du texte de l'action de validation évite toute confusion. Cela empêche surtout un utilisateur malveillant de glisser en douce une instruction « publier » lors de l'enregistrement ordinaire de son brouillon. Seuls les boutons d'action réservés aux administrateurs peuvent faire basculer un article d'un état à l'autre.
+\paragraph{Pourquoi :} Séparer nettement la modification du contenu des décisions de publication évite toute ambiguïté. L'auteur dispose de ses boutons pour soumettre son texte ou annuler sa soumission s'il souhaite encore le retoucher. L'administrateur dispose de commandes réservées pour valider l'article (mise en ligne), le rejeter (retour en brouillon chez l'auteur) ou le dépublier en cas de nécessité éditoriale.
 
-\subsubsection{Axe 6 : Confidentialité et visibilité des brouillons}
-\paragraph{Question :} Qui doit pouvoir voir les articles en cours de rédaction ?
+\subsubsection{Axe 6 : Confidentialité et visibilité des articles}
+\paragraph{Question :} Qui doit pouvoir voir les articles selon leur statut ?
 \paragraph{Options :}
 \begin{itemize}
-    \item[$\boxtimes$] Filtrage intelligent : les visiteurs ne voient que les articles publiés, l'auteur ne voit que ses propres brouillons, et l'administrateur voit tout.
-    \item[$\square$] Créer plusieurs adresses web séparées selon qui regarde.
+    \item[$\boxtimes$] Cloisonnement strict : l'auteur ne voit que ses propres brouillons, l'administrateur ne voit que les articles soumis et publiés, et les visiteurs ne voient que les articles publiés.
+    \item[$\square$] Donner accès à tous les brouillons dans la console d'administration.
 \end{itemize}
-\paragraph{Pourquoi :} Un brouillon est un travail inachevé, personnel et confidentiel. Il est donc logique qu'aucun autre utilisateur ne puisse l'apercevoir tant qu'il n'est pas prêt. L'administrateur, lui, doit pouvoir accéder à l'ensemble des brouillons pour relire les propositions et décider de leur mise en ligne. Le système applique cette règle de confidentialité automatiquement en fonction de la personne connectée.
+\paragraph{Pourquoi :} Un brouillon est une ébauche personnelle et confidentielle. L'administrateur n'a pas à surveiller des textes inachevés : son tableau de bord se concentre sur les articles effectivement soumis à modération et les articles en ligne. Les visiteurs, quant à eux, ne voient que les articles officiellement validés.
 
 \subsubsection{Axe 7 : Suppression des données et liens en cascade}
 \paragraph{Question :} Que doit-il se passer pour les commentaires lorsqu'un article est supprimé ?
@@ -212,7 +212,7 @@ Le schéma de la base de données est composé de trois tables principales :
 | id (PK)           |                 | id (PK)             |
 | email (UQ)        |                 | title               |
 | password (hash)   |                 | content (Markdown)  |
-| role (USER/ADMIN) |                 | status (DRAFT/PUB)  |
+| role (USER/ADMIN) |                 | status (3 statuts)  |
 | created_at        |                 | author_id (FK)      |
 +-------------------+                 | created_at          |
         |                             | updated_at          |
@@ -237,7 +237,7 @@ Le schéma de la base de données est composé de trois tables principales :
 
 \begin{itemize}
     \item \textbf{\texttt{users}} : Stocke l'adresse email (contrainte d'unicité), le mot de passe haché par l'algorithme BCrypt, et le rôle (\texttt{ROLE\_USER} ou \texttt{ROLE\_ADMIN}).
-    \item \textbf{\texttt{articles}} : Stocke le titre, le contenu rédigé en Markdown, le statut (\texttt{DRAFT} ou \texttt{PUBLISHED}), la clé étrangère vers l'auteur (\texttt{author\_id}), et les timestamps de création et mise à jour.
+    \item \textbf{\texttt{articles}} : Stocke le titre, le contenu rédigé en Markdown, le statut (\texttt{DRAFT}, \texttt{PENDING\_REVIEW} ou \texttt{PUBLISHED}), la clé étrangère vers l'auteur (\texttt{author\_id}), et les timestamps de création et mise à jour.
     \item \textbf{\texttt{comments}} : Stocke le texte du commentaire et les clés étrangères (\texttt{article\_id}, \texttt{author\_id}), avec suppression en cascade (\texttt{ON DELETE CASCADE}).
 \end{itemize}
 
@@ -250,11 +250,11 @@ La sécurité combine deux niveaux complémentaires : le contrôle d'accès bas�
 \begin{table}[htbp]
 \centering
 \small
-\renewcommand{\arraystretch}{1.4}
+\renewcommand{\arraystretch}{1.35}
 \caption{Matrice synthétique des droits d'accès par rôle}
 \label{tab:security-matrix}
 \setlength{\arrayrulewidth}{0.4pt}
-\begin{tabularx}{\textwidth}{|>{\bfseries}p{3.4cm}|p{2.9cm}|X|X|}
+\begin{tabularx}{\textwidth}{|>{\bfseries}p{3.2cm}|p{2.6cm}|X|X|}
 \hline
 \rowcolor{gray!75}
 \color{white}\textbf{Opération / ressource} & \color{white}\textbf{Visiteur anonyme} & \color{white}\textbf{Auteur connecté} & \color{white}\textbf{Administrateur} \\
@@ -265,25 +265,27 @@ Authentification & Inscription / Connexion & Session active & Session active \\
 Articles publiés & Consultation libre & Consultation libre & Modération \& dépublication \\
 \hline
 \rowcolor{gray!10}
-Brouillons (\texttt{DRAFT}) & Inaccessibles & Création, édition \& suppression de ses brouillons & Consultation globale, édition \& publication \\
+Brouillons (\texttt{DRAFT}) & Inaccessibles & Édition, suppression \& soumission & Inaccessibles (privés à l'auteur) \\
 \hline
-Commentaires sur publiés & Lecture seule & Ajout, édition \& suppression de ses écrits & Ajout \& modération de tous les commentaires \\
+En attente (\texttt{PENDING}) & Inaccessibles & Consultation \& annulation de soumission & Examen, validation \& renvoi en brouillon \\
 \hline
 \rowcolor{gray!10}
-Commentaires sur brouillons & \centering$\times$ Interdit & \centering$\times$ Interdit & \centering\arraybackslash$\times$ Interdit \\
+Commentaires sur publiés & Lecture seule & Ajout, édition \& suppression de ses écrits & Ajout \& modération de tous les commentaires \\
+\hline
+Commentaires sur non publiés & \centering$\times$ Interdit & \centering$\times$ Interdit & \centering\arraybackslash$\times$ Interdit \\
 \hline
 \end{tabularx}
 \end{table}
 
 \subsection{Validation et tests automatisés du backend}
 
-Afin de garantir la robustesse des règles de gestion et la stricte étanchéité de la sécurité au niveau ressource, une suite de 18 tests automatisés a été implémentée avec JUnit 5, Mockito et MockMvc.
+Afin de garantir la robustesse des règles de gestion et la stricte étanchéité de la sécurité au niveau ressource, une suite de 23 tests automatisés a été implémentée avec JUnit 5, Mockito et MockMvc.
 
 \begin{table}[htbp]
 \centering
 \small
 \renewcommand{\arraystretch}{1.4}
-\caption{Synthèse concise des 18 tests automatisés du backend}
+\caption{Synthèse concise des 23 tests automatisés du backend}
 \label{tab:test-suite}
 \setlength{\arrayrulewidth}{0.4pt}
 \begin{tabularx}{\textwidth}{|>{\bfseries}l|l|X|c|c|}
@@ -294,15 +296,15 @@ Afin de garantir la robustesse des règles de gestion et la stricte étanchéit�
 \rowcolor{gray!10}
 Authentification & Unitaire & Inscription nominale, unicité d'email (409), login valide et génération JWT & 3 & \textcolor{green!50!black}{\checkmark} \\
 \hline
-Articles & Unitaire & Création en brouillon forcé, droits auteur, verrouillage publié, modération admin, workflow publier/dépublier, cascade & 7 & \textcolor{green!50!black}{\checkmark} \\
+Articles & Unitaire & Création brouillon forcé, soumission auteur, annulation, rejet admin, validation, dépublication, verrouillages & 12 & \textcolor{green!50!black}{\checkmark} \\
 \hline
 \rowcolor{gray!10}
-Commentaires & Unitaire & Ajout sur publié, interdiction sur brouillon, modification/suppression auteur, modération admin & 7 & \textcolor{green!50!black}{\checkmark} \\
+Commentaires & Unitaire & Ajout sur publié, interdiction sur non publié, modification/suppression auteur, modération admin & 7 & \textcolor{green!50!black}{\checkmark} \\
 \hline
-Sécurité globale & Intégration & Scénario complet en 15 étapes (création compte, isolation brouillon, publication admin, cascade) & 1 & \textcolor{green!50!black}{\checkmark} \\
+Sécurité globale & Intégration & Scénario complet en 17 étapes (isolation brouillon, soumission, publication admin, cascade) & 1 & \textcolor{green!50!black}{\checkmark} \\
 \hline
 \rowcolor{gray!20}
-\multicolumn{3}{|l|}{\textbf{Total (exécutable via \texttt{mvn test})}} & \textbf{18} & \textbf{100\%} \\
+\multicolumn{3}{|l|}{\textbf{Total (exécutable via \texttt{mvn test})}} & \textbf{23} & \textbf{100\%} \\
 \hline
 \end{tabularx}
 \end{table}

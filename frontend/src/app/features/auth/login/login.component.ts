@@ -88,25 +88,6 @@ import { AuthService } from '../../../core/services/auth.service';
             </button>
           </form>
 
-          <!-- Quick Fill Demo Shortcut -->
-          <div class="mt-8 pt-6 border-t border-slate-100">
-            <p class="text-xs text-slate-500 mb-3 text-center font-medium">Comptes de test rapide :</p>
-            <div class="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                (click)="fillCredentials('admin@miniblog.com', 'adminPassword123!')"
-                class="py-2 px-3 text-xs font-semibold rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200/60 transition text-center">
-                👑 Admin Seed
-              </button>
-              <button
-                type="button"
-                (click)="fillCredentials('author@miniblog.com', 'authorPassword123!')"
-                class="py-2 px-3 text-xs font-semibold rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 transition text-center">
-                ✍️ Remplir Auteur
-              </button>
-            </div>
-          </div>
-
         </div>
 
       </div>
@@ -126,11 +107,6 @@ export class LoginComponent {
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]]
   });
-
-  fillCredentials(email: string, pass: string): void {
-    this.loginForm.patchValue({ email, password: pass });
-    this.errorMessage.set('');
-  }
 
   onSubmit(): void {
     if (this.loginForm.invalid) {

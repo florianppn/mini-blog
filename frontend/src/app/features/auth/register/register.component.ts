@@ -87,10 +87,6 @@ import { AuthService } from '../../../core/services/auth.service';
               }
             </div>
 
-            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 text-xs text-slate-600">
-              ℹ️ Les comptes créés ont le rôle <strong class="text-slate-800">ROLE_USER</strong>. Vous pourrez rédiger des articles en brouillon et commenter les articles publiés.
-            </div>
-
             <button
               type="submit"
               [disabled]="registerForm.invalid || passwordMismatch() || isLoading()"

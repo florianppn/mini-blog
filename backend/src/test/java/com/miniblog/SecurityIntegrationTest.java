@@ -149,18 +149,31 @@ public class SecurityIntegrationTest {
                         .content(objectMapper.writeValueAsString(updateReq)))
                 .andExpect(status().isForbidden());
 
-        // --- ÉTAPE 7 : User A tente de publier son article -> 403 Forbidden (seul l'admin peut) ---
-        mockMvc.perform(patch("/api/articles/" + articleId + "/publish")
-                        .header("Authorization", tokenUserA))
+        // --- ÉTAPE 7 : User B tente de soumettre le draft de A -> 403 Forbidden ---
+        mockMvc.perform(patch("/api/articles/" + articleId + "/submit")
+                        .header("Authorization", tokenUserB))
                 .andExpect(status().isForbidden());
 
-        // --- ÉTAPE 8 : L'administrateur publie l'article ---
+        // --- ÉTAPE 8 : User A soumet son article pour validation (DRAFT -> PENDING_REVIEW) ---
+        mockMvc.perform(patch("/api/articles/" + articleId + "/submit")
+                        .header("Authorization", tokenUserA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("PENDING_REVIEW"));
+
+        // --- ÉTAPE 9 : En cours de validation, l'auteur A ne peut plus modifier directement (gelé) ---
+        mockMvc.perform(put("/api/articles/" + articleId)
+                        .header("Authorization", tokenUserA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateReq)))
+                .andExpect(status().isForbidden());
+
+        // --- ÉTAPE 10 : L'administrateur publie l'article (PENDING_REVIEW -> PUBLISHED) ---
         mockMvc.perform(patch("/api/articles/" + articleId + "/publish")
                         .header("Authorization", tokenAdmin))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PUBLISHED"));
 
-        // --- ÉTAPE 9 : Visiteur anonyme peut désormais lire l'article publié ---
+        // --- ÉTAPE 11 : Visiteur anonyme peut désormais lire l'article publié ---
         mockMvc.perform(get("/api/articles/" + articleId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PUBLISHED"))
@@ -170,7 +183,7 @@ public class SecurityIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(1)));
 
-        // --- ÉTAPE 10 : Règle stricte : User A ne peut PLUS modifier son article une fois PUBLISHED ---
+        // --- ÉTAPE 12 : Règle stricte : User A ne peut PLUS modifier son article une fois PUBLISHED ---
         ArticleUpdateRequest tryEditPublished = new ArticleUpdateRequest("Tentative de modification", "Interdit");
         mockMvc.perform(put("/api/articles/" + articleId)
                         .header("Authorization", tokenUserA)
@@ -178,12 +191,12 @@ public class SecurityIntegrationTest {
                         .content(objectMapper.writeValueAsString(tryEditPublished)))
                 .andExpect(status().isForbidden());
 
-        // --- ÉTAPE 11 : Règle stricte : User A ne peut PLUS supprimer son article une fois PUBLISHED ---
+        // --- ÉTAPE 13 : Règle stricte : User A ne peut PLUS supprimer son article une fois PUBLISHED ---
         mockMvc.perform(delete("/api/articles/" + articleId)
                         .header("Authorization", tokenUserA))
                 .andExpect(status().isForbidden());
 
-        // --- ÉTAPE 12 : User B commente l'article publié ---
+        // --- ÉTAPE 14 : User B commente l'article publié ---
         CommentCreateRequest commentReq = new CommentCreateRequest("Excellent article rédigé par A !");
         MvcResult commentRes = mockMvc.perform(post("/api/articles/" + articleId + "/comments")
                         .header("Authorization", tokenUserB)
@@ -196,12 +209,12 @@ public class SecurityIntegrationTest {
         JsonNode commentJson = objectMapper.readTree(commentRes.getResponse().getContentAsString());
         long commentId = commentJson.get("id").asLong();
 
-        // --- ÉTAPE 13 : User A tente de supprimer le commentaire de B -> 403 Forbidden ---
+        // --- ÉTAPE 15 : User A tente de supprimer le commentaire de B -> 403 Forbidden ---
         mockMvc.perform(delete("/api/comments/" + commentId)
                         .header("Authorization", tokenUserA))
                 .andExpect(status().isForbidden());
 
-        // --- ÉTAPE 14 : L'administrateur peut modérer (supprimer) le commentaire de B ---
+        // --- ÉTAPE 16 : L'administrateur peut modérer (supprimer) le commentaire de B ---
         mockMvc.perform(delete("/api/comments/" + commentId)
                         .header("Authorization", tokenAdmin))
                 .andExpect(status().isNoContent());
@@ -211,7 +224,7 @@ public class SecurityIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(0)));
 
-        // --- ÉTAPE 15 : L'administrateur peut repasser l'article en DRAFT (dépublier) ---
+        // --- ÉTAPE 17 : L'administrateur peut repasser l'article en DRAFT (dépublier) ---
         mockMvc.perform(patch("/api/articles/" + articleId + "/unpublish")
                         .header("Authorization", tokenAdmin))
                 .andExpect(status().isOk())

@@ -18,7 +18,11 @@ import { MarkdownPipe } from '../../../shared/pipes/markdown.pipe';
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
-        {{ isEditMode ? 'Annuler et revenir à l\'article' : 'Retour à mes brouillons' }}
+        @if (isEditMode) {
+          <span>Annuler et revenir à l'article</span>
+        } @else {
+          <span>Retour à mes brouillons</span>
+        }
       </a>
 
       <div class="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-10 shadow-sm">
@@ -26,10 +30,18 @@ import { MarkdownPipe } from '../../../shared/pipes/markdown.pipe';
         <div class="flex items-center justify-between pb-6 border-b border-slate-100 mb-8">
           <div>
             <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              {{ isEditMode ? 'Modifier l\'article' : 'Rédiger un nouvel article' }}
+              @if (isEditMode) {
+                Modifier l'article
+              } @else {
+                Rédiger un nouvel article
+              }
             </h1>
             <p class="text-xs sm:text-sm text-slate-500 mt-1">
-              {{ isEditMode ? 'Mettez à jour le contenu de votre brouillon avant publication.' : 'Votre article sera enregistré au statut DRAFT et soumis à validation administrateur.' }}
+              @if (isEditMode) {
+                Mettez à jour le contenu de votre brouillon avant publication.
+              } @else {
+                Votre article sera enregistré au statut DRAFT et soumis à validation administrateur.
+              }
             </p>
           </div>
 
@@ -130,7 +142,11 @@ import { MarkdownPipe } from '../../../shared/pipes/markdown.pipe';
               @if (isSubmitting()) {
                 <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
               }
-              {{ isEditMode ? 'Enregistrer les modifications' : 'Enregistrer le brouillon' }}
+              @if (isEditMode) {
+                <span>Enregistrer les modifications</span>
+              } @else {
+                <span>Enregistrer le brouillon</span>
+              }
             </button>
           </div>
 
