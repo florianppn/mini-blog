@@ -11,6 +11,7 @@
 \usepackage{booktabs}
 \usepackage{tabularx}
 \usepackage{colortbl}
+\usepackage{longtable}
 \usepackage{fancyhdr}
 \setlength{\headheight}{14.5pt}
 \addtolength{\topmargin}{-2.5pt}
@@ -43,6 +44,8 @@
     breaklines=true,
     showstringspaces=false
 }
+
+\newcommand{\testmethod}[1]{{\ttfamily\scriptsize\nolinkurl{#1}}}
 
 \begin{document}
 
@@ -96,7 +99,7 @@
 
 Le projet \textbf{Mini-Blog} a pour objectif d'offrir une plateforme moderne, performante et sécurisée de publication et d'interaction communautaire. L'application est architecturée de la façon suivante :
 \begin{itemize}
-    \item \textbf{Backend RESTful} : Développé en Java 21 LTS avec \textbf{Spring Boot 3}, assurant la gestion des utilisateurs, des articles, des commentaires, du hachage BCrypt, des jetons JWT stateless et du contrôle d'accès au niveau ressource.
+    \item \textbf{Backend RESTful} : Développé en Java 25 avec \textbf{Spring Boot 4}, assurant la gestion des utilisateurs, des articles, des commentaires, du hachage BCrypt, des jetons JWT stateless et du contrôle d'accès au niveau ressource.
     \item \textbf{Base de Données Relationnelle} : Propulsée par \textbf{PostgreSQL 16}, avec contrôle strict de schéma et migrations SQL versionnées via \textbf{Flyway}.
     \item \textbf{Frontend Single Page Application (SPA)} : Développé avec \textbf{Angular 18} en architecture \textit{Standalone} intégrale, exploitant les \textbf{Signals} réactifs et le design system utilitaire \textbf{Tailwind CSS}.
     \item \textbf{Infrastructure \& Conteneurisation} : Déploiement automatisé multi-conteneurs via \textbf{Docker Compose} avec serveur web \textbf{Nginx} servant l'application sur le port conventionnel \texttt{4200} et assurant le reverse-proxying interne vers l'API sans friction CORS.
@@ -432,7 +435,7 @@ Promouvoir Administrateur & $\times$ & $\times$ & $\times$ & $\times$ (Verrouill
 L'ensemble de la plateforme est orchestré via un fichier \texttt{docker-compose.yml} unique pilotant les 3 conteneurs sur un réseau interne :
 \begin{itemize}
     \item \textbf{\texttt{miniblog-postgres}} : Base PostgreSQL 16 Alpine avec healthcheck automatisé.
-    \item \textbf{\texttt{miniblog-backend}} : API Spring Boot 3 compilée en conteneur multi-stage (JRE 21 slim).
+    \item \textbf{\texttt{miniblog-backend}} : API Spring Boot 4 compilée en conteneur multi-stage (Eclipse Temurin 25 JRE Alpine).
     \item \textbf{\texttt{miniblog-frontend}} : Serveur Nginx Alpine servant l'application Angular compilée et assurant le reverse-proxying vers l'API.
 \end{itemize}
 
@@ -448,7 +451,7 @@ L'ensemble de la plateforme est orchestré via un fichier \texttt{docker-compose
 
 La plateforme \textbf{Mini-Blog} dispose d'une implémentation fullstack complète, opérationnelle et rigoureusement documentée :
 \begin{itemize}
-    \item \textbf{Excellence backend} : Architecture Spring Boot 3 en Java 21, persistence PostgreSQL 16 avec migrations Flyway, hachage BCrypt, jetons JJWT stateless et sécurité granulaire par ressource.
+    \item \textbf{Backend} : Architecture Spring Boot 4 en Java 25, persistence PostgreSQL 16 avec migrations Flyway, hachage BCrypt, jetons JJWT stateless et sécurité granulaire par ressource.
     \item \textbf{Couverture de tests} : Suite automatisée de 44 tests unitaires et d'intégration validant 100\% de la matrice des droits, de la gouvernance des rôles, de la gestion du compte et des règles d'étanchéité éditoriale.
     \item \textbf{Expérience frontend} : Application Angular 18 moderne, performante et réactive exploitant les Signals, un design system moderne avec Tailwind CSS, et une tolérance aux pannes réseau.
     \item \textbf{Déploiement reproductible} : Orchestration conteneurisée via Docker Compose, isolation étanche des secrets d'environnement via \texttt{.env.example}, et reverse-proxying Nginx sur le port conventionnel \texttt{4200}.
@@ -456,7 +459,7 @@ La plateforme \textbf{Mini-Blog} dispose d'une implémentation fullstack complè
 
 \newpage
 \appendix
-\section{Annexe : Référentiel exhaustif des points de terminaison (Endpoints API)}
+\section{Annexe 1 : Référentiel des End-points API}
 
 Le tableau récapitulatif ci-dessous recense l'ensemble des points d'entrée de l'API RESTful exposée par le backend Spring Boot, avec leur méthode HTTP, leur chemin d'accès, les restrictions d'accès et leur rôle fonctionnel :
 
@@ -530,5 +533,215 @@ PATCH & /api/admin/users/\{id\}/role & Administrateur & Attribution ou retrait d
 \hline
 \end{tabularx}
 \end{table}
+
+\newpage
+\section{Annexe 2 : Référentiel des tests unitaires et d'intégration}
+
+Cette annexe détaille l'intégralité de la suite de tests automatisés mise en place sur le backend Spring Boot (44 tests au total, validant 100\% de la matrice de sécurité et des règles métier).
+Cette suite se décompose en deux catégories complémentaires :
+\begin{enumerate}
+    \item \textbf{Tests unitaires de services (39 tests)} : Isolant la logique métier pure à l'aide du framework Mockito, sans dépendance à un contexte d'exécution lourd ni à la base de données.
+    \item \textbf{Tests d'intégration de sécurité et de persistance (5 tests)} : Exécutés en contexte complet Spring Boot (\texttt{@SpringBootTest}, \texttt{MockMvc}) avec interactions réelles sur la base PostgreSQL et vérification du cycle de vie des autorisations de bout en bout.
+\end{enumerate}
+
+\subsection*{Tableau A : Matrice des Tests Unitaires (Services Métier)}
+
+\begingroup
+\scriptsize
+\renewcommand{\arraystretch}{1.25}
+\setlength{\arrayrulewidth}{0.4pt}
+\begin{longtable}{|>{\raggedright\arraybackslash\bfseries}p{2.7cm}|>{\raggedright\arraybackslash}p{4.8cm}|>{\raggedright\arraybackslash}p{7.2cm}|}
+\caption{Référentiel détaillé des tests unitaires de services} \label{tab:unit-tests} \\
+\hline
+\rowcolor{gray!75}
+\color{white}\textbf{Composant} & \color{white}\textbf{Méthode de test (@Test)} & \color{white}\textbf{Scénario et comportement attendu} \\
+\hline
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\bfseries \tablename\ \thetable{} -- suite de la page précédente}} \\
+\hline
+\rowcolor{gray!75}
+\color{white}\textbf{Composant} & \color{white}\textbf{Méthode de test (@Test)} & \color{white}\textbf{Scénario et comportement attendu} \\
+\hline
+\endhead
+
+\hline \multicolumn{3}{|r|}{{Suite page suivante...}} \\ \hline
+\endfoot
+
+\hline
+\endlastfoot
+
+\multicolumn{3}{|l|}{\cellcolor{gray!20}\textbf{1. Service d'authentification (\texttt{AuthServiceTest} - 5 tests)}} \\
+\hline
+AuthService & \testmethod{register_Success} & Inscription valide d'un nouvel auteur : vérification de l'unicité de l'email, encodage BCrypt du mot de passe, persistance en base et génération du jeton JWT. \\
+\hline
+AuthService & \testmethod{register_EmailAlreadyExists_ThrowsBadRequestException} & Rejet immédiat de l'inscription si l'email existe déjà avec levée de \texttt{BadRequestException} et aucune persistance. \\
+\hline
+AuthService & \testmethod{login_Success} & Connexion réussie avec identifiants valides : appel à l'\texttt{AuthenticationManager} et émission du jeton d'authentification JWT. \\
+\hline
+AuthService & \testmethod{getCurrentUser_Success} & Restitution fidèle du profil utilisateur à partir de l'email extrait du jeton JWT dans le contexte de sécurité. \\
+\hline
+AuthService & \testmethod{getCurrentUser_NotFound_ThrowsException} & Détection d'incohérence : levée de \texttt{BadRequestException} si l'utilisateur lié au token est introuvable en base. \\
+\hline
+
+\multicolumn{3}{|l|}{\cellcolor{gray!20}\textbf{2. Service de gestion de compte (\texttt{AccountServiceTest} - 7 tests)}} \\
+\hline
+AccountService & \testmethod{changeEmail_Success} & Modification effective de l'adresse email de l'auteur/modérateur après validation réussie de son mot de passe actuel. \\
+\hline
+AccountService & \testmethod{changeEmail_WrongPassword_ThrowsBadRequest} & Rejet de la modification d'email en cas de mot de passe actuel erroné (\texttt{BadRequestException}), interdisant l'usurpation. \\
+\hline
+AccountService & \testmethod{changeEmail_EmailAlreadyExists_ThrowsBadRequest} & Blocage si la nouvelle adresse email est déjà utilisée par un autre compte inscrit sur la plateforme. \\
+\hline
+AccountService & \testmethod{changePassword_Success} & Modification du mot de passe avec validation de l'ancien mot de passe, vérification de la confirmation et réencodage BCrypt. \\
+\hline
+AccountService & \testmethod{changePassword_MismatchConfirm_ThrowsBadRequest} & Rejet immédiat si le nouveau mot de passe et sa confirmation ne sont pas rigoureusement identiques. \\
+\hline
+AccountService & \testmethod{deleteAccount_Success} & Suppression définitive et irréversible du compte utilisateur (Auteur ou Modérateur) après validation du mot de passe. \\
+\hline
+AccountService & \testmethod{deleteAccount_AdminAccount_ThrowsBadRequest} & Protection absolue de l'administration : interdiction formelle pour un compte \texttt{ROLE\_ADMIN} de s'auto-supprimer. \\
+\hline
+
+\multicolumn{3}{|l|}{\cellcolor{gray!20}\textbf{3. Service des articles et gouvernance éditoriale (\texttt{ArticleServiceTest} - 13 tests)}} \\
+\hline
+ArticleService & \testmethod{createArticle_AlwaysCreatesDraft} & Règle d'or éditoriale : tout nouvel article créé est obligatoirement initialisé au statut \texttt{DRAFT} (brouillon privé). \\
+\hline
+ArticleService & \testmethod{submitArticle_AuthorCanSubmitDraft_SetsStatusToPendingReview} & L'auteur propriétaire d'un brouillon peut soumettre son article en relecture (\texttt{DRAFT} $\to$ \texttt{PENDING\_REVIEW}). \\
+\hline
+ArticleService & \testmethod{submitArticle_OtherUserCannotSubmitDraft_ThrowsAccessDenied} & Étanchéité des ressources : un utilisateur tiers ne peut pas soumettre le brouillon d'un autre auteur (\texttt{AccessDeniedException}). \\
+\hline
+ArticleService & \testmethod{cancelSubmission_AuthorCanCancelPendingArticle_ReturnsToDraft} & Droit de retrait : l'auteur peut annuler sa soumission (\texttt{PENDING\_REVIEW} $\to$ \texttt{DRAFT}) pour apporter de nouveaux correctifs. \\
+\hline
+ArticleService & \testmethod{rejectArticle_AdminRejectsPendingArticle_ReturnsToDraft} & Processus de relecture : l'administrateur rejette un article en attente et le renvoie en brouillon à l'auteur pour révision. \\
+\hline
+ArticleService & \testmethod{updateArticle_AuthorCannotUpdate_} \testmethod{PendingArticle_ThrowsAccessDenied} & Gel éditorial : l'auteur ne peut pas modifier un article tant qu'il est en cours d'examen par la modération. \\
+\hline
+ArticleService & \testmethod{updateArticle_AuthorCanUpdateDraft} & L'auteur propriétaire peut modifier librement le titre et le contenu de son article tant qu'il demeure en statut \texttt{DRAFT}. \\
+\hline
+ArticleService & \testmethod{updateArticle_AuthorCannotUpdate_} \testmethod{PublishedArticle_ThrowsAccessDenied} & Immutabilité publique : interdiction formelle pour l'auteur de modifier un article une fois qu'il a été publié en ligne. \\
+\hline
+ArticleService & \testmethod{updateArticle_OtherUserCannotUpdateDraft_ThrowsAccessDenied} & Protection d'intégrité : un utilisateur quelconque ne peut altérer le brouillon rédigé par un autre utilisateur. \\
+\hline
+ArticleService & \testmethod{createArticle_AdminCannotCreateArticle_ThrowsAccessDenied} & Séparation stricte des rôles : l'administrateur n'a pas le droit de rédiger des articles (\texttt{AccessDeniedException}). \\
+\hline
+ArticleService & \testmethod{updateArticle_AdminCannotUpdate_} \testmethod{PublishedArticle_ThrowsAccessDenied} & Neutralité éditoriale : l'administrateur n'a pas le droit de modifier le contenu des articles rédigés par les auteurs. \\
+\hline
+ArticleService & \testmethod{publishArticle_SetsStatusToPublished} & L'administrateur valide l'article soumis et déclenche sa publication publique (\texttt{PUBLISHED}). \\
+\hline
+ArticleService & \testmethod{unpublishArticle_SetsStatusToDraft} & Action de dépublication : l'administrateur retire un article en ligne et le repasse en brouillon (\texttt{DRAFT}). \\
+\hline
+
+\multicolumn{3}{|l|}{\cellcolor{gray!20}\textbf{4. Service des commentaires (\texttt{CommentServiceTest} - 8 tests)}} \\
+\hline
+CommentService & \testmethod{createComment_OnPublishedArticle_Success} & Tout utilisateur authentifié peut poster un commentaire sous un article ayant le statut \texttt{PUBLISHED}. \\
+\hline
+CommentService & \testmethod{createComment_OnDraftArticle_ThrowsBadRequestException} & Verrouillage : interdiction formelle de commenter un article qui n'est pas encore publié (\texttt{BadRequestException}). \\
+\hline
+CommentService & \testmethod{updateComment_AuthorCanUpdate} & L'auteur d'un commentaire est autorisé à modifier le texte de son propre commentaire. \\
+\hline
+CommentService & \testmethod{updateComment_OtherUserCannotUpdate_ThrowsAccessDenied} & Étanchéité : un utilisateur tiers ne peut pas modifier le commentaire d'un autre membre (\texttt{AccessDeniedException}). \\
+\hline
+CommentService & \testmethod{deleteComment_AuthorCanDelete} & L'auteur d'un commentaire dispose du droit de supprimer son propre commentaire. \\
+\hline
+CommentService & \testmethod{deleteComment_AdminCanDeleteAnyComment} & Prérogative administrative : l'administrateur peut supprimer n'importe quel commentaire sur l'ensemble du blog. \\
+\hline
+CommentService & \testmethod{deleteComment_ModeratorCanDeleteAnyComment} & Rôle de modération : le modérateur dispose du droit de supprimer les commentaires inappropriés de tout utilisateur. \\
+\hline
+CommentService & \testmethod{deleteComment_OtherUserCannotDelete_ThrowsAccessDenied} & Sécurité : un auteur standard ne peut pas supprimer les commentaires d'autrui (\texttt{AccessDeniedException}). \\
+\hline
+
+\multicolumn{3}{|l|}{\cellcolor{gray!20}\textbf{5. Service d'administration des utilisateurs (\texttt{UserServiceTest} - 6 tests)}} \\
+\hline
+UserService & \testmethod{getAllUsers_AdminSuccess} & L'administrateur accède à la consultation exhaustive de tous les utilisateurs enregistrés avec leurs rôles et métadonnées. \\
+\hline
+UserService & \testmethod{getAllUsers_UserForbidden} & Contrôle d'accès : un utilisateur standard ou modérateur est bloqué en cas de tentative d'accès à la liste des utilisateurs. \\
+\hline
+UserService & \testmethod{updateUserRole_PromoteToModerator_Success} & L'administrateur accorde avec succès le rôle \texttt{ROLE\_MODERATOR} à un auteur (\texttt{ROLE\_USER}). \\
+\hline
+UserService & \testmethod{updateUserRole_DemoteToUser_Success} & L'administrateur rétrograde un modérateur au rang d'auteur standard (\texttt{ROLE\_USER}). \\
+\hline
+UserService & \testmethod{updateUserRole_PromoteToAdmin_ThrowsBadRequest} & Sécurité du système : interdiction absolue de promouvoir un utilisateur au rôle \texttt{ROLE\_ADMIN} via l'API. \\
+\hline
+UserService & \testmethod{updateUserRole_ChangeAdminAccountRole_ThrowsBadRequest} & Inviolabilité du compte root : interdiction de rétrograder ou de modifier le rôle du compte administrateur. \\
+\end{longtable}
+\endgroup
+
+\newpage
+\subsection*{Tableau B : Matrice des Tests d'Intégration (Sécurité et Compte)}
+
+\begingroup
+\scriptsize
+\renewcommand{\arraystretch}{1.25}
+\setlength{\arrayrulewidth}{0.4pt}
+\begin{longtable}{|>{\raggedright\arraybackslash\bfseries}p{3.6cm}|>{\raggedright\arraybackslash}p{4.3cm}|>{\raggedright\arraybackslash}p{6.8cm}|}
+\caption{Référentiel détaillé des tests d'intégration bout-en-bout} \label{tab:integration-tests} \\
+\hline
+\rowcolor{gray!75}
+\color{white}\textbf{Classe de test} & \color{white}\textbf{Méthode / Scénario (@Test)} & \color{white}\textbf{Scénario et comportement attendu} \\
+\hline
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\bfseries \tablename\ \thetable{} -- suite de la page précédente}} \\
+\hline
+\rowcolor{gray!75}
+\color{white}\textbf{Classe de test} & \color{white}\textbf{Méthode / Scénario (@Test)} & \color{white}\textbf{Scénario et comportement attendu} \\
+\hline
+\endhead
+
+\hline \multicolumn{3}{|r|}{{Suite page suivante...}} \\ \hline
+\endfoot
+
+\hline
+\endlastfoot
+
+\multicolumn{3}{|l|}{\cellcolor{gray!20}\textbf{1. Intégration gestion de compte (\texttt{AccountIntegrationTest} - 4 tests)}} \\
+\hline
+AccountIntegrationTest & \testmethod{changeEmail_EndToEnd} & Scénario HTTP complet avec MockMvc : mise à jour de l'email en base PostgreSQL, ré-interrogation du profil et vérification de la persistance. \\
+\hline
+AccountIntegrationTest & \testmethod{changePassword_EndToEnd} & Validation bout-en-bout : modification du mot de passe via l'API, tentative de reconnexion réussie avec le nouveau mot de passe et rejet avec l'ancien. \\
+\hline
+AccountIntegrationTest & \testmethod{deleteAccount_EndToEnd_Cascade} & Effacement en cascade : suppression d'un utilisateur possédant des articles et des commentaires, vérification de la purge intégrale en base sans violation de clé étrangère. \\
+\hline
+AccountIntegrationTest & \testmethod{deleteAccount_AdminBlocked} & Tentative de suppression du compte administrateur par appel HTTP : vérification de la réponse 400 Bad Request et intégrité du compte préservée. \\
+\hline
+
+\multicolumn{3}{|l|}{\cellcolor{gray!20}\textbf{2. Intégration cycle de vie et sécurité (\texttt{SecurityIntegrationTest} - 1 test, 17 étapes)}} \\
+\hline
+SecurityIntegrationTest & \testmethod{fullSecurityLifecycleTest} \newline \textit{(Étape 1 : Création DRAFT)} & L'Auteur A crée un article : l'API force le statut à \texttt{DRAFT} quel que soit le corps envoyé (\texttt{201 Created}). \\
+\hline
+SecurityIntegrationTest & \testmethod{fullSecurityLifecycleTest} \newline \textit{(Étape 2 : Liste anonyme)} & Un visiteur anonyme interroge \texttt{GET /api/articles} : le brouillon de l'Auteur A est totalement invisible (liste vide). \\
+\hline
+SecurityIntegrationTest & \testmethod{fullSecurityLifecycleTest} \newline \textit{(Étape 3 : Consultation directe)} & Un anonyme tente d'accéder au brouillon via son identifiant : rejet immédiat avec \texttt{403 Forbidden}. \\
+\hline
+SecurityIntegrationTest & \testmethod{fullSecurityLifecycleTest} \newline \textit{(Étape 4 : Accès Auteur tiers)} & L'Auteur B tente d'accéder au brouillon de l'Auteur A : rejet strict avec \texttt{403 Forbidden}. \\
+\hline
+SecurityIntegrationTest & \testmethod{fullSecurityLifecycleTest} \newline \textit{(Étape 5 : Modification propriétaire)} & L'Auteur A consulte son propre brouillon (\texttt{200 OK}) et met à jour son titre et son contenu avec succès. \\
+\hline
+SecurityIntegrationTest & \testmethod{fullSecurityLifecycleTest} \newline \textit{(Étape 6 : Édition frauduleuse)} & L'Auteur B tente de modifier le brouillon de l'Auteur A : rejet immédiat avec \texttt{403 Forbidden}. \\
+\hline
+SecurityIntegrationTest & \testmethod{fullSecurityLifecycleTest} \newline \textit{(Étape 7 : Soumission frauduleuse)} & L'Auteur B tente de soumettre le brouillon de l'Auteur A : rejet immédiat avec \texttt{403 Forbidden}. \\
+\hline
+SecurityIntegrationTest & \testmethod{fullSecurityLifecycleTest} \newline \textit{(Étape 8 : Soumission auteur)} & L'Auteur A soumet son article en relecture : transition d'état validée de \texttt{DRAFT} vers \texttt{PENDING\_REVIEW}. \\
+\hline
+SecurityIntegrationTest & \testmethod{fullSecurityLifecycleTest} \newline \textit{(Étape 9 : Gel en cours d'examen)} & L'Auteur A tente de modifier son article soumis : rejet \texttt{403 Forbidden}, l'article est gelé durant l'examen. \\
+\hline
+SecurityIntegrationTest & \testmethod{fullSecurityLifecycleTest} \newline \textit{(Étape 10 : Publication admin)} & L'Administrateur valide l'article : transition d'état confirmée de \texttt{PENDING\_REVIEW} vers \texttt{PUBLISHED}. \\
+\hline
+SecurityIntegrationTest & \testmethod{fullSecurityLifecycleTest} \newline \textit{(Étape 11 : Visibilité publique)} & L'anonyme peut désormais consulter l'article publié individuellement et le retrouve dans la liste globale. \\
+\hline
+SecurityIntegrationTest & \testmethod{fullSecurityLifecycleTest} \newline \textit{(Étape 12 : Règle immutabilité)} & L'Auteur A tente de modifier son article une fois publié : rejet strict \texttt{403 Forbidden} (verrou éditorial). \\
+\hline
+SecurityIntegrationTest & \testmethod{fullSecurityLifecycleTest} \newline \textit{(Étape 13 : Règle suppression)} & L'Auteur A tente de supprimer son article publié : rejet strict \texttt{403 Forbidden}. \\
+\hline
+SecurityIntegrationTest & \testmethod{fullSecurityLifecycleTest} \newline \textit{(Étape 14 : Commentaire public)} & L'Auteur B poste un commentaire sous l'article publié : validation de l'ajout (\texttt{201 Created}). \\
+\hline
+SecurityIntegrationTest & \testmethod{fullSecurityLifecycleTest} \newline \textit{(Étape 15 : Suppression pirate)} & L'Auteur A tente de supprimer le commentaire posté par l'Auteur B : rejet \texttt{403 Forbidden}. \\
+\hline
+SecurityIntegrationTest & \testmethod{fullSecurityLifecycleTest} \newline \textit{(Étape 16 : Modération admin)} & L'Administrateur supprime le commentaire de B : succès (\texttt{204 No Content}) et purge effective constatée. \\
+\hline
+SecurityIntegrationTest & \testmethod{fullSecurityLifecycleTest} \newline \textit{(Étape 17 : Dépublication)} & L'Administrateur repasse l'article au statut \texttt{DRAFT} : l'article redevient instantanément invisible pour le public. \\
+\end{longtable}
+\endgroup
 
 \end{document}
