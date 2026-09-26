@@ -461,20 +461,32 @@ La plateforme \textbf{Mini-Blog} dispose d'une implémentation fullstack complè
 \appendix
 \section{Annexe 1 : Référentiel des End-points API}
 
-Le tableau récapitulatif ci-dessous recense l'ensemble des points d'entrée de l'API RESTful exposée par le backend Spring Boot, avec leur méthode HTTP, leur chemin d'accès, les restrictions d'accès et leur rôle fonctionnel :
-
-\begin{table}[htbp]
-\centering
+\begingroup
 \scriptsize
 \renewcommand{\arraystretch}{1.25}
-\caption{Répertoire complet des endpoints de l'API REST Mini-Blog}
-\label{tab:api-endpoints}
 \setlength{\arrayrulewidth}{0.4pt}
-\begin{tabularx}{\textwidth}{|>{\bfseries}p{1.4cm}|>{\ttfamily}p{4.2cm}|p{2.6cm}|X|}
+\begin{longtable}{|>{\raggedright\arraybackslash\bfseries}p{1.45cm}|>{\raggedright\arraybackslash\ttfamily}p{4.2cm}|>{\raggedright\arraybackslash}p{2.5cm}|>{\raggedright\arraybackslash}p{6.15cm}|}
+\caption{Répertoire complet des endpoints de l'API REST Mini-Blog} \label{tab:api-endpoints} \\
 \hline
 \rowcolor{gray!75}
-\color{white}\textbf{Méthode} & \color{white}\textbf{Chemin (URI)} & \color{white}\textbf{Accès / Rôle requis} & \color{white}\textbf{Rôle et description fonctionnelle} \\
+\color{white}\textbf{Méthode} & \color{white}\textbf{Chemin (URI)} & \color{white}\textbf{Accès / Rôle} & \color{white}\textbf{Rôle et description fonctionnelle} \\
 \hline
+\endfirsthead
+
+\multicolumn{4}{c}%
+{{\bfseries \tablename\ \thetable{} -- suite de la page précédente}} \\
+\hline
+\rowcolor{gray!75}
+\color{white}\textbf{Méthode} & \color{white}\textbf{Chemin (URI)} & \color{white}\textbf{Accès / Rôle} & \color{white}\textbf{Rôle et description fonctionnelle} \\
+\hline
+\endhead
+
+\hline \multicolumn{4}{|r|}{{Suite page suivante...}} \\ \hline
+\endfoot
+
+\hline
+\endlastfoot
+
 \multicolumn{4}{|l|}{\cellcolor{gray!20}\textbf{1. Authentification (\texttt{/api/auth})}} \\
 \hline
 POST & /api/auth/register & Public (Anonyme) & Inscription d'un nouvel utilisateur (créé avec le rôle \texttt{ROLE\_USER}). \\
@@ -531,20 +543,13 @@ GET & /api/admin/users & Administrateur & Liste complète de tous les utilisateu
 \hline
 PATCH & /api/admin/users/\{id\}/role & Administrateur & Attribution ou retrait du rôle Modérateur (\texttt{ROLE\_USER} $\leftrightarrow$ \texttt{ROLE\_MODERATOR}). \\
 \hline
-\end{tabularx}
-\end{table}
+\end{longtable}
+\endgroup
 
 \newpage
 \section{Annexe 2 : Référentiel des tests unitaires et d'intégration}
 
-Cette annexe détaille l'intégralité de la suite de tests automatisés mise en place sur le backend Spring Boot (44 tests au total, validant 100\% de la matrice de sécurité et des règles métier).
-Cette suite se décompose en deux catégories complémentaires :
-\begin{enumerate}
-    \item \textbf{Tests unitaires de services (39 tests)} : Isolant la logique métier pure à l'aide du framework Mockito, sans dépendance à un contexte d'exécution lourd ni à la base de données.
-    \item \textbf{Tests d'intégration de sécurité et de persistance (5 tests)} : Exécutés en contexte complet Spring Boot (\texttt{@SpringBootTest}, \texttt{MockMvc}) avec interactions réelles sur la base PostgreSQL et vérification du cycle de vie des autorisations de bout en bout.
-\end{enumerate}
-
-\subsection*{Tableau A : Matrice des Tests Unitaires (Services Métier)}
+\subsection*{Tableau A : Matrice des Tests Unitaires (39 tests)}
 
 \begingroup
 \scriptsize
@@ -667,7 +672,7 @@ UserService & \testmethod{updateUserRole_ChangeAdminAccountRole_ThrowsBadRequest
 \endgroup
 
 \newpage
-\subsection*{Tableau B : Matrice des Tests d'Intégration (Sécurité et Compte)}
+\subsection*{Tableau B : Matrice des Tests d'Intégration (5 tests)}
 
 \begingroup
 \scriptsize
