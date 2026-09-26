@@ -19,11 +19,9 @@
           [ngClass]="activeSection() === 'articles' ? 'bg-white text-zinc-900 shadow-sm font-semibold' : 'text-zinc-600 hover:text-zinc-900 font-medium'"
           class="px-3.5 py-1.5 rounded-md text-xs transition flex items-center gap-2">
           <span>Articles</span>
-          @if (pendingCount() > 0) {
-            <span class="px-1.5 py-0.2 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-800 border border-amber-200">
-              {{ pendingCount() }}
-            </span>
-          }
+          <span class="px-1.5 py-0.2 rounded-full text-[11px] font-medium bg-zinc-200 text-zinc-700">
+            {{ totalArticlesCount() }}
+          </span>
         </button>
 
         <button
@@ -375,34 +373,63 @@
       </div>
 
       <div class="bg-white p-5 rounded-xl border border-zinc-200/90 shadow-sm">
-        <div class="text-xs uppercase tracking-wider font-medium text-zinc-500">Modérateurs</div>
-        <div class="text-2xl font-semibold text-zinc-950 mt-1">{{ countModerators() }}</div>
-        <div class="text-xs text-zinc-400 mt-1">Comptes avec gestion des commentaires</div>
-      </div>
-
-      <div class="bg-white p-5 rounded-xl border border-zinc-200/90 shadow-sm">
         <div class="text-xs uppercase tracking-wider font-medium text-zinc-500">Auteurs</div>
         <div class="text-2xl font-semibold text-zinc-950 mt-1">{{ countAuthors() }}</div>
         <div class="text-xs text-zinc-400 mt-1">Comptes standards</div>
       </div>
+
+      <div class="bg-white p-5 rounded-xl border border-zinc-200/90 shadow-sm">
+        <div class="text-xs uppercase tracking-wider font-medium text-zinc-500">Modérateurs</div>
+        <div class="text-2xl font-semibold text-zinc-950 mt-1">{{ countModerators() }}</div>
+        <div class="text-xs text-zinc-400 mt-1">Comptes avec gestion des commentaires</div>
+      </div>
     </div>
 
-    <!-- Search Toolbar -->
-    <div class="bg-white p-3.5 rounded-xl border border-zinc-200/90 shadow-sm mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-      <div class="relative flex-1 max-w-md">
+    <!-- Search Toolbar with Filters -->
+    <div class="bg-white p-3.5 rounded-xl border border-zinc-200/90 shadow-sm mb-6 flex flex-col md:flex-row md:items-center justify-between gap-3">
+      
+      <!-- Filter Tabs -->
+      <div class="flex items-center flex-wrap gap-1.5 p-0.5 bg-zinc-100 rounded-lg w-fit">
+        <button
+          (click)="setRoleFilter(undefined)"
+          [ngClass]="selectedRole() === undefined ? 'bg-white text-zinc-900 shadow-sm font-semibold' : 'text-zinc-600 hover:text-zinc-900 font-medium'"
+          class="px-3 py-1.5 rounded-md text-xs transition">
+          Tous ({{ users().length }})
+        </button>
+        <button
+          (click)="setRoleFilter('ROLE_USER')"
+          [ngClass]="selectedRole() === 'ROLE_USER' ? 'bg-white text-zinc-900 shadow-sm font-semibold' : 'text-zinc-600 hover:text-zinc-900 font-medium'"
+          class="px-3 py-1.5 rounded-md text-xs transition">
+          Auteurs ({{ countAuthors() }})
+        </button>
+        <button
+          (click)="setRoleFilter('ROLE_MODERATOR')"
+          [ngClass]="selectedRole() === 'ROLE_MODERATOR' ? 'bg-white text-zinc-900 shadow-sm font-semibold' : 'text-zinc-600 hover:text-zinc-900 font-medium'"
+          class="px-3 py-1.5 rounded-md text-xs transition">
+          Modérateurs ({{ countModerators() }})
+        </button>
+        <button
+          (click)="setRoleFilter('ROLE_ADMIN')"
+          [ngClass]="selectedRole() === 'ROLE_ADMIN' ? 'bg-white text-zinc-900 shadow-sm font-semibold' : 'text-zinc-600 hover:text-zinc-900 font-medium'"
+          class="px-3 py-1.5 rounded-md text-xs transition">
+          Administrateurs ({{ countAdmins() }})
+        </button>
+      </div>
+
+      <!-- Search input -->
+      <div class="relative w-full md:w-80">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
         <input
           type="text"
           [(ngModel)]="userSearchQuery"
-          placeholder="Rechercher par email ou rôle..."
-          class="w-full pl-8 pr-3 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-xs text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 transition" />
-        <svg class="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
+          placeholder="Rechercher par email..."
+          class="w-full pl-8 pr-3 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-xs text-zinc-900 placeholder-zinc-400 focus:bg-white focus:outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 transition" />
       </div>
 
-      <div class="text-xs text-zinc-500 font-medium">
-        {{ filteredUsers().length }} utilisateur(s)
-      </div>
     </div>
 
     <!-- Users Table -->
@@ -439,7 +466,7 @@
                   </td>
                   <td class="py-3.5 px-4">
                     @if (user.role === 'ROLE_ADMIN') {
-                      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-zinc-900 text-white">
+                      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-zinc-100 text-zinc-800 border border-zinc-200">
                         Administrateur
                       </span>
                     } @else if (user.role === 'ROLE_MODERATOR') {
@@ -447,7 +474,7 @@
                         Modérateur
                       </span>
                     } @else {
-                      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-zinc-50 text-zinc-600 border border-zinc-200/70">
+                      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-zinc-100 text-zinc-700 border border-zinc-200">
                         Auteur
                       </span>
                     }

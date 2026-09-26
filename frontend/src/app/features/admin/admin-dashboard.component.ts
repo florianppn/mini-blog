@@ -31,6 +31,7 @@ export class AdminDashboardComponent implements OnInit {
   usersLoading = signal<boolean>(false);
   userActionLoadingId = signal<number | null>(null);
   userSearchQuery = '';
+  selectedRole = signal<string | undefined>(undefined);
 
   currentPage = signal<number>(0);
   totalPages = signal<number>(1);
@@ -217,8 +218,19 @@ export class AdminDashboardComponent implements OnInit {
     return this.users().filter(u => u.role === 'ROLE_USER').length;
   }
 
+  countAdmins(): number {
+    return this.users().filter(u => u.role === 'ROLE_ADMIN').length;
+  }
+
+  setRoleFilter(role: string | undefined): void {
+    this.selectedRole.set(role);
+  }
+
   filteredUsers(): User[] {
     let list = this.users();
+    if (this.selectedRole()) {
+      list = list.filter(u => u.role === this.selectedRole());
+    }
     if (this.userSearchQuery.trim()) {
       const q = this.userSearchQuery.toLowerCase();
       list = list.filter(u =>

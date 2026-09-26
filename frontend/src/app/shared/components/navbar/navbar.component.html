@@ -102,12 +102,11 @@
                       {{ authService.currentUser()?.email }}
                     </div>
                     @if (authService.isModerator()) {
-                      <span class="inline-flex items-center gap-1 text-[10px] font-medium text-sky-800 bg-sky-50 border border-sky-200 px-1.5 py-0.2 rounded">
-                        <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+                      <span class="inline-block text-[10px] font-medium px-1.5 py-0.2 rounded bg-zinc-100 text-zinc-800 border border-zinc-200">
                         Modérateur
                       </span>
                     } @else {
-                      <span class="inline-flex items-center gap-1 text-[10px] font-medium text-zinc-600 bg-zinc-100 px-1.5 py-0.2 rounded border border-zinc-200/80">
+                      <span class="inline-block text-[10px] font-medium px-1.5 py-0.2 rounded bg-zinc-100 text-zinc-600 border border-zinc-200/80">
                         Auteur
                       </span>
                     }
